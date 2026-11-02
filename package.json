@@ -1,0 +1,17 @@
+{
+  "name": "suhaeng-archive",
+  "version": "1.0.0",
+  "private": true,
+  "description": "학교알리미 교수·학습 및 평가계획에서 수행평가를 자동 수집·검색하는 아카이브 (made by junjunT)",
+  "scripts": {
+    "collect": "node collector/collect.js",
+    "build": "node collector/build.js",
+    "serve": "npx --yes http-server docs -p 8080 -c-1"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "cfb": "1.2.2",
+    "fflate": "0.8.2",
+    "pdfjs-dist": "4.4.168"
+  }
+}
