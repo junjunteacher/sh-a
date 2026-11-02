@@ -1,0 +1,90 @@
+name: 학교알리미 수집
+
+on:
+  schedule:
+    - cron: '17 18 * * *'   # 매일 새벽 3시 17분(한국 시간)
+  workflow_dispatch:
+    inputs:
+      sido:
+        description: '시·도 코드 (비우면 전국). 예: 1200000000 = 전남광주'
+        required: false
+        default: ''
+      level:
+        description: '04 = 고등학교, 03 = 중학교'
+        required: false
+        default: '04'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+      level: ${{ steps.m.outputs.level }}
+    steps:
+      - id: m
+        run: |
+          ALL='["1100000000","1200000000","2600000000","2700000000","2800000000","3000000000","3100000000","3611000000","4100000000","4300000000","4400000000","4700000000","4800000000","5000000000","5100000000","5200000000"]'
+          SIDO='${{ github.event.inputs.sido }}'
+          if [ -n "$SIDO" ]; then echo "matrix=[\"$SIDO\"]" >> $GITHUB_OUTPUT; else echo "matrix=$ALL" >> $GITHUB_OUTPUT; fi
+          LV='${{ github.event.inputs.level }}'
+          echo "level=${LV:-04}" >> $GITHUB_OUTPUT
+
+  collect:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        sido: ${{ fromJson(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 수집
+        run: node collector/collect.js --sido ${{ matrix.sido }} --level ${{ needs.plan.outputs.level }} --budget 320
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-${{ matrix.sido }}-${{ needs.plan.outputs.level }}
+          path: docs/data/raw/${{ matrix.sido }}-${{ needs.plan.outputs.level }}.json.gz
+          if-no-files-found: ignore
+          retention-days: 3
+
+  publish:
+    needs: collect
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: raw-*
+          path: docs/data/raw
+          merge-multiple: true
+      - name: 색인 만들기
+        run: node collector/build.js
+      - name: 저장소에 올리기
+        run: |
+          git config user.name "suhaeng-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add docs/data
+          if git diff --cached --quiet; then echo "바뀐 자료 없음"; exit 0; fi
+          git commit -m "자료 갱신 $(date -u +'%Y-%m-%d')"
+          for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
