@@ -13,7 +13,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((a, v, i, arr) => (
 const ROOT = path.resolve(__dirname, '..');
 const DATA = path.resolve(ROOT, args.out || 'docs/data');
 const RAW = path.join(DATA, 'raw');
-const sido = String(args.sido || '');
+const sido = String(args.sido || '').normalize('NFKC').trim();
 const level = String(args.level || '04'); // 03 중학교, 04 고등학교
 const budgetMin = +(args.budget || 330);
 const limitSchools = +(args.limit || 0);

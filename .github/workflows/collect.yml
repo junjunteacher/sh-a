@@ -31,7 +31,7 @@ jobs:
       - id: m
         run: |
           ALL='["1100000000","1200000000","2600000000","2700000000","2800000000","3000000000","3100000000","3611000000","4100000000","4300000000","4400000000","4700000000","4800000000","5000000000","5100000000","5200000000"]'
-          SIDO='${{ github.event.inputs.sido }}'
+          SIDO=$(node -e "process.stdout.write(process.argv[1].normalize('NFKC').replace(/\\s/g,''))" '${{ github.event.inputs.sido }}')
           if [ -n "$SIDO" ]; then echo "matrix=[\"$SIDO\"]" >> $GITHUB_OUTPUT; else echo "matrix=$ALL" >> $GITHUB_OUTPUT; fi
           LV='${{ github.event.inputs.level }}'
           echo "level=${LV:-04}" >> $GITHUB_OUTPUT
