@@ -58,7 +58,9 @@ jobs:
         if: always()
         with:
           name: raw-${{ matrix.sido }}-${{ needs.plan.outputs.level }}
-          path: docs/data/raw/${{ matrix.sido }}-${{ needs.plan.outputs.level }}.json.gz
+          path: |
+            docs/data/raw/${{ matrix.sido }}-${{ needs.plan.outputs.level }}.json.gz
+            docs/data/details/${{ matrix.sido }}-${{ needs.plan.outputs.level }}/
           if-no-files-found: ignore
           retention-days: 3
 
@@ -76,8 +78,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: raw-*
-          path: docs/data/raw
+          path: docs/data
           merge-multiple: true
+      - name: 받은 자료 확인
+        run: ls docs/data/raw; ls docs/data/details | head -40
       - name: 색인 만들기
         run: node collector/build.js
       - name: 저장소에 올리기
