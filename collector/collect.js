@@ -23,6 +23,15 @@ const started = Date.now();
 if (!SIDO[sido]) { console.error('시·도 코드를 --sido 로 주세요:', Object.entries(SIDO).map(([k, v]) => `${k}=${v}`).join(', ')); process.exit(1); }
 fs.mkdirSync(RAW, { recursive: true });
 const rawFile = path.join(RAW, `${sido}-${level}.json.gz`);
+const DETAIL = path.join(DATA, 'details', `${sido}-${level}`);
+fs.mkdirSync(DETAIL, { recursive: true });
+const VERSION = 2; // 검출 규칙이 바뀌면 올림 → 예전에 읽은 파일도 다시 처리
+const detailFile = sid => path.join(DETAIL, `${sid}.json.gz`);
+function loadDetail(sid) { try { return JSON.parse(zlib.gunzipSync(fs.readFileSync(detailFile(sid))).toString('utf8')); } catch (e) { return { cases: {} }; } }
+function saveDetail(sid, d) {
+  if (!Object.keys(d.cases).length) { try { fs.unlinkSync(detailFile(sid)); } catch (e) {} return; }
+  fs.writeFileSync(detailFile(sid), zlib.gzipSync(Buffer.from(JSON.stringify(d)), { level: 9 }));
+}
 
 function load() {
   try { return JSON.parse(zlib.gunzipSync(fs.readFileSync(rawFile)).toString('utf8')); }
@@ -44,6 +53,7 @@ function compact(c, ctx, idx) {
     g: c.grade, se: c.semester, t: c.tasks, pw: c.perfWeight, ew: c.examWeight,
     st: c.standards, m: c.methods, tg: c.tags, sc: c.score, ev: c.evidence,
     ex: (c.excerpt || '').slice(0, 900), doc: ctx.doc !== ctx.fileName ? ctx.doc : undefined,
+    nt: (c.tables || []).length,
   };
 }
 
@@ -71,6 +81,8 @@ async function main() {
   for (const s of todo) {
     if (timeUp()) { log('시간 예산 소진 — 다음 실행에서 이어서 합니다'); break; }
     const st = state.schools[s.sid] || (state.schools[s.sid] = { name: s.name, district: s.district, files: {} });
+    const detail = loadDetail(s.sid);
+    let detailDirty = false;
     st.name = s.name; st.district = s.district;
     try {
       const first = await cli.plan(s.sid, s.name);
@@ -86,21 +98,28 @@ async function main() {
           const key = `${yc}:${f.seq}:${f.name}:${f.size}`;
           keep.add(key);
           nFiles++;
-          if (st.files[key] && !st.files[key].err) continue;
+          if (st.files[key] && !st.files[key].err && st.files[key].v === VERSION) continue;
           if (timeUp()) break;
-          const rec = { name: f.name, yc, seq: f.seq, size: f.size, at: new Date().toISOString(), cases: [] };
+          const rec = { name: f.name, yc, seq: f.seq, size: f.size, at: new Date().toISOString(), v: VERSION, cases: [] };
+          for (const [id, d] of Object.entries(detail.cases)) if (d.k === key) delete detail.cases[id];
+          detailDirty = true;
           try {
             const buf = await cli.download(form, f.seq);
             const docs = await extractDocs(buf, f.name);
             let idx = 0;
             for (const d of docs) {
               if (d.error) { rec.warn = (rec.warn || '') + `${d.name}: ${d.error}; `; continue; }
-              const cs = detectCases(d.lines, { fileName: d.name, year: +yc.slice(0, 4), chasu: +yc.slice(4) }, d.frags);
-              for (const c of cs) rec.cases.push(compact(c, { sid: s.sid, yc, seq: f.seq, doc: d.name, fileName: f.name }, idx++));
+              const cs = detectCases(d.lines, { fileName: d.name, year: +yc.slice(0, 4), chasu: +yc.slice(4) }, d.frags, d.blocks);
+              for (const c of cs) {
+                const row = compact(c, { sid: s.sid, yc, seq: f.seq, doc: d.name, fileName: f.name }, idx++);
+                rec.cases.push(row);
+                if (c.tables && c.tables.length) detail.cases[row.id] = { k: key, tb: c.tables };
+              }
             }
             if (!rec.cases.length) rec.note = '수행평가 미검출';
             nNew++;
-            log(`${s.name} · ${f.name.slice(0, 50)} → ${rec.cases.length}건`);
+            const nTb = rec.cases.reduce((a, c) => a + (c.nt || 0), 0), fb = docs.some(d => d.fallback);
+            log(`${s.name} · ${f.name.slice(0, 50)} → ${rec.cases.length}건 · 표 ${nTb}개${fb ? ' (표 해석 실패→글만)' : ''}`);
           } catch (e) {
             rec.err = String(e.message || e).slice(0, 200);
             nErr++;
@@ -111,7 +130,11 @@ async function main() {
         }
       }
       // 내려간(교체된) 첨부는 정리
-      if (!timeUp()) for (const k of Object.keys(st.files)) if (!keep.has(k)) delete st.files[k];
+      if (!timeUp()) {
+        for (const k of Object.keys(st.files)) if (!keep.has(k)) delete st.files[k];
+        for (const [id, d] of Object.entries(detail.cases)) if (!keep.has(d.k)) { delete detail.cases[id]; detailDirty = true; }
+      }
+      if (detailDirty) saveDetail(s.sid, detail);
       st.checked = new Date().toISOString();
       delete st.note;
     } catch (e) {
@@ -120,7 +143,7 @@ async function main() {
     }
   }
   // 목록에서 사라진 학교 정리 (전체 실행일 때만)
-  if (!limitSchools && !onlyGugun && !timeUp()) { const ids = new Set(schools.map(s => s.sid)); for (const k of Object.keys(state.schools)) if (!ids.has(k)) delete state.schools[k]; }
+  if (!limitSchools && !onlyGugun && !timeUp()) { const ids = new Set(schools.map(s => s.sid)); for (const k of Object.keys(state.schools)) if (!ids.has(k)) { delete state.schools[k]; try { fs.unlinkSync(detailFile(k)); } catch (e) {} } }
   save(state);
   log(`끝: 첨부 ${nFiles}개 중 새로 처리 ${nNew}개, 오류 ${nErr}개, ${((Date.now() - started) / 60000).toFixed(1)}분`);
 }

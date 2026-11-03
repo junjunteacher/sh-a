@@ -34,7 +34,7 @@ for (const f of raws) {
       for (const c of fr.cases || []) {
         has = true; nCases++;
         regions[r][s.district || '']++;
-        const row = { ...c, s: s.name, sid, r, d: s.district || '', lv: st.level, yc: fr.yc, fs: fr.seq, fn: fr.name };
+        const row = { ...c, s: s.name, sid, r, d: s.district || '', lv: st.level, yc: fr.yc, fs: fr.seq, fn: fr.name, dk: `${st.sido}-${st.level}` };
         if (!row.doc) delete row.doc;
         if (!bySubject.has(c.sub)) bySubject.set(c.sub, { grp: c.grp, rows: [] });
         bySubject.get(c.sub).rows.push(row);

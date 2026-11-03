@@ -64,7 +64,7 @@ const NOT_NAME = /^(정기시험|지필평가|수행평가|합계|선택형|단�
 function cleanName(s) {
   let t = String(s)
     .replace(/[│|]/g, ' ')
-    .replace(/^[\s▪■□◦○●◎◆◇▶▷►•·\-–—*※☞]+/, '')
+    .replace(/^[\s▪■□◦○●◎◆◇▶▷►•·ㆍ・∙‧\-–—*※☞]+/, '')
     .replace(/^(?:[가-하]\.|\d+\)|\(\d+\)|[①-⑩]|\d+\.(?!\d)|수행\s*평가\s*\d*\s*[:：)]|\[[^\]]{0,10}수행[^\]]*\])\s*/, '')
     .replace(/^\([\d.%\/회~\s]+\)\s*/, '')
     .replace(/\s*[①-⑩☞].*$/, '')
@@ -271,8 +271,139 @@ function checkedMethods(text) {
 
 function firstMatch(re, s) { const m = s.match(re); return m ? m : null; }
 
-function analyzeSegment(lines, seg, frags, pageOf) {
+// ================= 표 구조 기반 =================
+const tNS = tb => NS(tb.rows.map(r => r.map(c => c.t).join(' ')).join(' '));
+const LABEL_ROW = /^(평가)?영역|^수행평가(영역|명)|^과제명|영역.?횟수|^영역및횟수|^평가명|^수행과제|^내용$/;
+const RUBRIC_HEAD = /채점기준|평가기준|세부기준|채점요소|평가요소|배점|척도|채점|평가내용|평가관점|평가항목|수행수준|점수/;
+const NOT_RUBRIC = /^(주|시수|월|차시)$|단원명|수업방법|학사일정/;
+
+function grid(tb) { // 병합을 펼친 격자
+  const g = [];
+  tb.rows.forEach((row, ri) => row.forEach(c => {
+    const r = c.r !== undefined ? c.r : ri;
+    for (let y = 0; y < (c.rs || 1); y++) for (let x = 0; x < (c.cs || 1); x++) { (g[r + y] || (g[r + y] = []))[c.c + x] = c; }
+  }));
+  return g;
+}
+function rowIndexOf(tb) { tb.rows.forEach((row, ri) => row.forEach(c => { if (c.r === undefined) c.r = ri; })); }
+
+function tasksFromPlan(tb) {
+  rowIndexOf(tb);
+  const g = grid(tb);
+  // 이름 줄: 첫 칸이 '영역/영역·횟수/평가영역…'
+  let lr = -1, labelCell = null;
+  for (let r = 0; r < g.length; r++) {
+    const row = g[r] || []; const first = row.find(Boolean);
+    if (first && LABEL_ROW.test(NS(first.t)) && NS(first.t).length <= 14) { lr = r; labelCell = first; break; }
+  }
+  // 수행평가 머리 칸의 열 범위
+  let c1 = -1, c2 = -1;
+  for (let r = 0; r < (lr >= 0 ? lr : g.length); r++) for (const c of (g[r] || [])) if (c && /^수행평가/.test(NS(c.t)) && c !== labelCell) { c1 = c.c; c2 = c.c + (c.cs || 1); break; }
+  if (lr < 0 && c1 >= 0) { // 이름 줄이 표시되지 않은 표: 수행평가 머리 바로 아래 줄
+    for (let r = 0; r < g.length; r++) if ((g[r] || []).some(c => c && /^수행평가/.test(NS(c.t)))) { lr = r + 1; break; }
+  }
+  if (lr < 0 || !g[lr]) return [];
+  const seen = new Set(), out = [];
+  for (const c of g[lr]) {
+    if (!c || seen.has(c) || c === labelCell) continue; seen.add(c);
+    if (c.r !== lr && c.rs > 1 && c.r < lr) continue; // 위에서 내려온 병합 칸
+    if (c1 >= 0 && (c.c < c1 || c.c >= c2)) continue;
+    if (c1 < 0) { // 수행 머리가 없으면 지필·합계 열은 빼기
+      const head = (g[0] || [])[c.c];
+      if (head && /지필|정기|합계|^계$/.test(NS(head.t))) continue;
+    }
+    const t = cleanName(String(c.t).replace(/\n/g, ' '));
+    if (validName(t) && !SKIP.test(NS(t))) out.push(t);
+  }
+  return out;
+}
+function isPlanTable(tb) { const t = tNS(tb); return /수행평가/.test(t) && /반영|비율|영역/.test(t) && !/단원명|수업방법/.test(t.slice(0, 60)); }
+function isRubricTable(tb) {
+  if (tb.rows.length < 2 || tb.rows.length > 90) return false;
+  const head = NS(tb.rows.slice(0, 2).map(r => r.map(c => c.t).join(' ')).join(' '));
+  if (tb.rows[0].some(c => NOT_RUBRIC.test(NS(c.t)))) return false;
+  const all = tNS(tb);
+  if (/성취수준/.test(head) && !/\d점/.test(all)) return false;
+  if (isPlanTable(tb) && !RUBRIC_HEAD.test(head)) return false;
+  if (RUBRIC_HEAD.test(head)) return true;
+  const pts = (all.match(/\d+(\.\d+)?점/g) || []).length;
+  return pts >= 3 && /(^|[^가-힣])(상|중|하|우수|보통|미흡|매우)/.test(all);
+}
+function packTable(tb, kind, title, task) {
+  rowIndexOf(tb);
+  return { k: kind, ti: title || '', ta: task || '', r: tb.rows.slice(0, 60).map(row => row.map(c => [String(c.t).slice(0, 500), c.c, c.cs || 1, c.rs || 1])) };
+}
+
+// ---- PDF: 좌표 조각으로 표 비슷하게 만들기 ----
+function pdfGrid(fs) {
+  if (!fs.length) return null;
+  const h = median(fs.map(f => f.h));
+  const rows = [];
+  for (const f of [...fs].sort((a, b) => b.y - a.y || a.x - b.x)) {
+    let r = rows.find(r => Math.abs(r.y - f.y) < h * 0.45);
+    if (!r) { r = { y: f.y, fs: [] }; rows.push(r); }
+    r.fs.push(f);
+  }
+  rows.sort((a, b) => b.y - a.y);
+  const xs = fs.map(f => f.x).sort((a, b) => a - b);
+  const cols = [];
+  for (const x of xs) { const c = cols[cols.length - 1]; if (c && x - c.max < h * 1.2) { c.max = x; c.n++; } else cols.push({ min: x, max: x, n: 1 }); }
+  const colOf = x => { let k = 0; for (let i = 0; i < cols.length; i++) if (cols[i].min <= x + h * 0.5) k = i; return k; };
+  const out = [];
+  let prevY = null;
+  for (const r of rows) {
+    const cells = new Map();
+    for (const f of r.fs.sort((a, b) => a.x - b.x)) { const k = colOf(f.x); cells.set(k, (cells.has(k) ? cells.get(k) + ' ' : '') + f.s); }
+    const last = out[out.length - 1];
+    if (last && !cells.has(0) && prevY !== null && prevY - r.y < h * 1.7) { // 줄바꿈된 칸 이어 붙이기
+      for (const [k, t] of cells) { const c = last.find(c => c.c === k); if (c) c.t += ' ' + t; else last.push({ t, c: k, cs: 1, rs: 1 }); }
+      last.sort((a, b) => a.c - b.c);
+    } else out.push([...cells].map(([k, t]) => ({ t, c: k, cs: 1, rs: 1 })));
+    prevY = r.y;
+  }
+  return { rows: out.slice(0, 60) };
+}
+function median(a) { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)] || 10; }
+function pdfTables(frags, pFrom, pTo) {
+  const res = { plan: null, rubrics: [] };
+  for (let p = pFrom; p <= pTo; p++) {
+    const fs = frags.filter(f => f.p === p);
+    if (!fs.length) continue;
+    const h = median(fs.map(f => f.h));
+    // 반영 비율 표
+    if (!res.plan) {
+      const F = fs.find(f => /^수행평가(\(?\d+(\.\d+)?%\)?)?$/.test(NS(f.s)) && fs.some(g => Math.abs(g.y - f.y) < h * 0.6 && g.x < f.x && /지필|정기/.test(NS(g.s))));
+      if (F) {
+        const below = fs.filter(f => f.y <= F.y + h * 3).sort((a, b) => b.y - a.y);
+        let bottom = F.y - h * 22;
+        const stop = below.find(f => f.y < F.y - h && /^(관련)?성취기준|^성취기준코드|^평가시기$/.test(NS(f.s)));
+        if (stop) bottom = stop.y + h * 0.5;
+        const region = fs.filter(f => f.y <= F.y + h * 3 && f.y > bottom);
+        const g = pdfGrid(region);
+        if (g && g.rows.length >= 2) res.plan = g;
+      }
+    }
+    // 채점 기준 표
+    for (const H of fs.filter(f => /^(세부)?(채점|평가)(기준|요소)(표)?$|^채점기준및배점$|^평가기준및배점$/.test(NS(f.s)))) {
+      if (res.rubrics.some(r => r.p === p && Math.abs(r.y - H.y) < h * 30)) continue;
+      const region = fs.filter(f => f.y <= H.y + h * 0.6 && f.y > H.y - h * 55);
+      // 다음 큰 제목(왼쪽 끝의 "3." "나." 등)에서 끊기
+      const left = Math.min(...fs.map(f => f.x));
+      const brk = region.filter(f => f.y < H.y - h * 4 && f.x < left + h * 2 && /^(\d+\.|[가-하]\.|[①-⑩])\s*\S/.test(f.s) && f.s.length > 6).sort((a, b) => b.y - a.y)[0];
+      const rg = brk ? region.filter(f => f.y > brk.y + h * 0.3) : region;
+      const g = pdfGrid(rg);
+      if (g && g.rows.length >= 3) res.rubrics.push({ p, y: H.y, ...g });
+    }
+  }
+  return res;
+}
+
+function analyzeSegment(lines, seg, frags, pageOf, blocks) {
   const { start, end } = seg;
+  // 표 구조가 있으면(HWP·HWPX) 그 안에서 수행평가 영역과 채점 기준표를 찾는다
+  const segBlocks = (blocks || []).filter(b => b.line >= start && b.line < end);
+  let planTb = null, fromPlan = [];
+  for (const b of segBlocks) if (b.type === 'table' && isPlanTable(b)) { const t = tasksFromPlan(b); if (t.length || !planTb) { planTb = b; fromPlan = t; } if (t.length) break; }
   // 평가 계획 부분 찾기: "수행평가"가 처음으로 표 머리/반영비율과 함께 나오는 곳
   let evalStart = -1;
   for (let i = start; i < end; i++) {
@@ -281,8 +412,8 @@ function analyzeSegment(lines, seg, frags, pageOf) {
   }
   const names = [];
   const isPdf = !!(frags && frags.length);
-  const fromT = isPdf ? namesFromPdfTable(frags, pageOf[start], pageOf[Math.max(start, end - 1)]) : namesFromTable(lines, start, end);
-  const fromP = namesFromPatterns(lines, start, end, isPdf);
+  const fromT = fromPlan.length ? fromPlan : isPdf ? namesFromPdfTable(frags, pageOf[start], pageOf[Math.max(start, end - 1)]) : namesFromTable(lines, start, end);
+  const fromP = fromPlan.length ? [] : namesFromPatterns(lines, start, end, isPdf);
   for (const t of [...fromT, ...fromP]) {
     const k = NS(t);
     if (!names.some(x => NS(x) === k)) names.push(t);
@@ -320,7 +451,31 @@ function analyzeSegment(lines, seg, frags, pageOf) {
   const exFrom = evalStart >= 0 ? evalStart : start;
   const excerpt = lines.slice(exFrom, Math.min(end, exFrom + 90)).filter(l => l !== '<<PAGE>>').join(' / ').replace(/\s+/g, ' ').slice(0, 1800);
 
-  return { tasks: names.slice(0, 12), perfWeight: perf ? +perf[1] : null, examWeight: exam ? +exam[1] : null, standards: standards.slice(0, 30), methods, tags, evidence: ev, score, excerpt };
+  // ---- 표 묶기 ----
+  const tables = [];
+  if (segBlocks.length) {
+    if (planTb) tables.push(packTable(planTb, 'plan', '평가 방법과 반영 비율'));
+    let lastP = '';
+    const pIdx = segBlocks.indexOf(planTb);
+    segBlocks.forEach((b, i) => {
+      if (b.type === 'p') { if (NS(b.text).length <= 80) lastP = b.text; return; }
+      if (b === planTb || tables.length >= 9 || !isRubricTable(b)) return;
+      if (planTb && i < pIdx) return; // 반영 비율 표 앞(주간 계획 등)은 건너뜀
+      const tt = tNS(b) + NS(lastP);
+      const task = [...names].sort((a, c) => NS(c).length - NS(a).length).find(n => NS(n).length >= 3 && tt.includes(NS(n))) || '';
+      tables.push(packTable(b, 'rubric', lastP, task));
+    });
+  } else if (isPdf) {
+    const pt = pdfTables(frags, pageOf[start], pageOf[Math.max(start, end - 1)]);
+    if (pt.plan) tables.push(packTable(pt.plan, 'plan', '평가 방법과 반영 비율 (PDF에서 재구성)'));
+    for (const rb of pt.rubrics.slice(0, 8)) {
+      const tt = tNS(rb);
+      const task = [...names].sort((a, c) => NS(c).length - NS(a).length).find(n => NS(n).length >= 3 && tt.includes(NS(n))) || '';
+      tables.push(packTable(rb, 'rubric', '채점 기준 (PDF에서 재구성)', task));
+    }
+  }
+
+  return { tables, tasks: names.slice(0, 12), perfWeight: perf ? +perf[1] : null, examWeight: exam ? +exam[1] : null, standards: standards.slice(0, 30), methods, tags, evidence: ev, score, excerpt };
 }
 
 function gradeOf(s) { const m = NS(s).match(/([1-3])학년/); return m ? +m[1] : null; }
@@ -346,7 +501,7 @@ function subjectFromFileName(fileName) {
   const name = String(fileName || '');
   const SKIPW = /교수|평가|계획|학기|학년도|수정|최종|정보공시|운영|통합본|보통교과|전문교과|공동교육과정|과목\)|학교$|고등|중학|^(국어|수학|영어|사회|과학|도덕|체육|예술|음악|미술|기술|가정|기술·?가정|정보|제2외국어|외국어|한문|교양|진로|전문)\s*(교과|과|교과군)$/;
   for (const m of name.matchAll(/[(\[]([^()\[\]]{2,30})[)\]]/g)) {
-    const inner = m[1].replace(/\d\s*학년\s*/g, '').trim();
+    const inner = m[1].replace(/\d\s*학년\s*/g, '').replace(/[\s_-]*\(?(수정|최종|수정본|변경|정정)\d*\)?$/, '').trim();
     if (!inner || SKIPW.test(inner) || !/[가-힣]/.test(inner)) continue;
     const s = findSubject(normName(inner));
     if (s && s.norm === normName(inner)) return s;
@@ -355,7 +510,7 @@ function subjectFromFileName(fileName) {
   return findSubject(normName(name.replace(/정보\s*공시/g, '')));
 }
 
-function detectCases(lines, meta, frags) {
+function detectCases(lines, meta, frags, blocks) {
   const fileSubject = subjectFromFileName(meta.fileName);
   // 과목별 파일이면(파일명에 과목명) 파일 전체를 그 과목 하나로 본다
   let segs;
@@ -371,7 +526,7 @@ function detectCases(lines, meta, frags) {
   for (let i = 0; i < lines.length; i++) { pageOf[i] = pg; if (lines[i] === '<<PAGE>>') pg++; }
   const out = [];
   for (const seg of segs) {
-    const r = analyzeSegment(lines, seg, frags, pageOf);
+    const r = analyzeSegment(lines, seg, frags, pageOf, blocks);
     if (!r) continue;
     const head = lines.slice(seg.start, Math.min(seg.end, seg.start + 6)).join(' ');
     const grade = gradeOf(head) || gradeOf(meta.fileName) || null;
