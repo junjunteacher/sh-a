@@ -28,7 +28,7 @@ const S2015 = {
 // 매칭용 정규화: 공백·가운뎃점 제거, 로마숫자→아라비아 숫자
 function normName(s) {
   return String(s || '')
-    .replace(/Ⅰ|Ⅰ/g, '1').replace(/Ⅱ/g, '2').replace(/Ⅲ/g, '3')
+    .replace(/Ⅰ|Ⅰ/g, '1').replace(/Ⅱ/g, '2').replace(/Ⅲ/g, '3').replace(/([가-힣])\s*II$/, '$12').replace(/([가-힣])\s*I$/, '$11')
     .replace(/[\s·ㆍ‧∙•・.·]/g, '')
     .toLowerCase();
 }

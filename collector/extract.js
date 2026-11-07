@@ -45,7 +45,7 @@ async function pdfLines(buf, maxPages = 400) {
       const x = it.transform[4], y = it.transform[5], h = Math.abs(it.transform[3]) || Math.abs(it.transform[0]) || 10;
       let row = rows.find(r => Math.abs(r.y - y) < h * 0.45);
       if (!row) { row = { y, items: [] }; rows.push(row); }
-      row.items.push({ x, w: it.width, h, s: it.str });
+      row.items.push({ x, w: it.width, h, s: it.str.replace(/gfedcb/g, '☑').replace(/gfedc/g, '☐') });
     }
     rows.sort((a, b) => b.y - a.y);
     for (const r of rows) {

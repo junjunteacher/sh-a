@@ -25,7 +25,8 @@ fs.mkdirSync(RAW, { recursive: true });
 const rawFile = path.join(RAW, `${sido}-${level}.json.gz`);
 const DETAIL = path.join(DATA, 'details', `${sido}-${level}`);
 fs.mkdirSync(DETAIL, { recursive: true });
-const VERSION = 2; // 검출 규칙이 바뀌면 올림 → 예전에 읽은 파일도 다시 처리
+const VERSION = 3;     // 이번 검출 규칙 판
+const MIN_VERSION = 2; // 이 판보다 오래된 파일만 다시 처리(표 읽기가 없는 1판)
 const detailFile = sid => path.join(DETAIL, `${sid}.json.gz`);
 function loadDetail(sid) { try { return JSON.parse(zlib.gunzipSync(fs.readFileSync(detailFile(sid))).toString('utf8')); } catch (e) { return { cases: {} }; } }
 function saveDetail(sid, d) {
@@ -98,7 +99,7 @@ async function main() {
           const key = `${yc}:${f.seq}:${f.name}:${f.size}`;
           keep.add(key);
           nFiles++;
-          if (st.files[key] && !st.files[key].err && st.files[key].v === VERSION) continue;
+          if (st.files[key] && !st.files[key].err && (st.files[key].v || 1) >= MIN_VERSION) continue;
           if (timeUp()) break;
           const rec = { name: f.name, yc, seq: f.seq, size: f.size, at: new Date().toISOString(), v: VERSION, cases: [] };
           for (const [id, d] of Object.entries(detail.cases)) if (d.k === key) delete detail.cases[id];
@@ -145,6 +146,10 @@ async function main() {
   // 목록에서 사라진 학교 정리 (전체 실행일 때만)
   if (!limitSchools && !onlyGugun && !timeUp()) { const ids = new Set(schools.map(s => s.sid)); for (const k of Object.keys(state.schools)) if (!ids.has(k)) { delete state.schools[k]; try { fs.unlinkSync(detailFile(k)); } catch (e) {} } }
   save(state);
+  // 시간 안에 다 못 끝냈으면 표시 파일을 남겨 다음 실행이 이어서 하게 한다
+  const pendingFile = path.join(RAW, `${sido}-${level}.pending`);
+  if (timeUp()) fs.writeFileSync(pendingFile, new Date().toISOString()); else { try { fs.unlinkSync(pendingFile); } catch (e) {} }
+  log(timeUp() ? '남은 학교가 있어 이어서 수집이 필요합니다' : '이 시·도는 모두 처리했습니다');
   log(`끝: 첨부 ${nFiles}개 중 새로 처리 ${nNew}개, 오류 ${nErr}개, ${((Date.now() - started) / 60000).toFixed(1)}분`);
 }
 

@@ -63,6 +63,7 @@ const NOT_NAME = /^(정기시험|지필평가|수행평가|합계|선택형|단�
 
 function cleanName(s) {
   let t = String(s)
+    .replace(/gfedcb/g, '').replace(/gfedc/g, '')
     .replace(/[│|]/g, ' ')
     .replace(/^[\s▪■□◦○●◎◆◇▶▷►•·ㆍ・∙‧\-–—*※☞]+/, '')
     .replace(/^(?:[가-하]\.|\d+\)|\(\d+\)|[①-⑩]|\d+\.(?!\d)|수행\s*평가\s*\d*\s*[:：)]|\[[^\]]{0,10}수행[^\]]*\])\s*/, '')
@@ -492,20 +493,45 @@ function guessSubject(lines, fileName) {
       if (/^(과목|과목명|교과목|교과목명)[:：]?$/.test(NS(lines[i])) && NS(lines[i + 1]).length <= 20 && /[가-힣]/.test(lines[i + 1])) { name = lines[i + 1].trim(); break; }
     }
   }
-  if (!name || !/[가-힣]{2}/.test(name) || /교수|평가|계획|학기|학년|교육과정/.test(name)) return null;
+  name = cleanPiece(name);
+  if (!name || !/[가-힣]{2}/.test(name) || /교수|평가|계획|학기|학년|교육과정/.test(name) || GENERIC.test(NS(name)) || /(과|학과)$/.test(name) && !/과학$/.test(name)) return null;
+  const known = findSubject(normName(name)); if (known) return known;
   return { name, norm: normName(name), group: '기타', curs: ['2015', '2022'], guessed: true };
 }
 
 // 파일명에서 과목: 괄호 안 이름을 먼저 정확히 맞춰 보고, 없으면 파일명 전체에서 찾는다
+// 파일명에서 과목: 괄호·밑줄로 나뉜 조각마다 정확히 맞춰 보고, 없으면 파일명 전체에서 찾는다
+const GENERIC = /^(학급|공시용?|전과목|첨부|도제|항목|통합이수|제출(양식|용)?\d*|전체과?|보통과?|일반과?|학점수?|학년별?|용|학과|사회|과학|국어|수학|영어|고\d|보통|일반|pdf.*|변경.*|완료?|\d+월|최종|수정|과목|교과|별첨|붙임|양식|서식|계획서?|운영|정보공시|공시|자료|파일|목록|전체본|통합본|합본|보통교과|전문교과|공통|선택|진로선택|일반선택|융합선택|교양|기타)$/;
+function cleanPiece(x) {
+  return String(x).replace(/\d\s*학년\s*/g, '').replace(/\d\s*학기\s*/g, '')
+    .replace(/[\s_-]*\(?(수정|최종|수정본|변경|정정|완료|변경완)\d*\)?$/, '')
+    .replace(/^[\s_\-,.·~\d]+|[\s_\-,.·~]+$/g, '').replace(/\s*([IⅠ])$/, 'Ⅰ').replace(/\s*(II|Ⅱ)$/, 'Ⅱ').trim();
+}
 function subjectFromFileName(fileName) {
-  const name = String(fileName || '');
-  const SKIPW = /교수|평가|계획|학기|학년도|수정|최종|정보공시|운영|통합본|보통교과|전문교과|공동교육과정|과목\)|학교$|고등|중학|^(국어|수학|영어|사회|과학|도덕|체육|예술|음악|미술|기술|가정|기술·?가정|정보|제2외국어|외국어|한문|교양|진로|전문)\s*(교과|과|교과군)$/;
-  for (const m of name.matchAll(/[(\[]([^()\[\]]{2,30})[)\]]/g)) {
-    const inner = m[1].replace(/\d\s*학년\s*/g, '').replace(/[\s_-]*\(?(수정|최종|수정본|변경|정정)\d*\)?$/, '').trim();
-    if (!inner || SKIPW.test(inner) || !/[가-힣]/.test(inner)) continue;
-    const s = findSubject(normName(inner));
-    if (s && s.norm === normName(inner)) return s;
-    if (inner.length <= 20 && !/\d{4}|[,，]/.test(inner)) return { name: inner, norm: normName(inner), group: '기타', curs: ['2015', '2022'], guessed: true };
+  const name = String(fileName || '').replace(/\.(hwpx?|pdf|zip|docx?)$/i, '');
+  const SKIPW = /교수|평가|계획|학년도|정보공시|운영|통합본|공동교육과정|학교$|고등|중학|과정$/;
+  const pieces = [];
+  for (const m of name.matchAll(/[(\[]([^()\[\]]{2,40})[)\]]/g)) pieces.push(m[1]);
+  for (const part of name.replace(/[(\[][^()\[\]]*[)\]]/g, ' ').split(/[_]+|\s-\s/)) pieces.push(part);
+  const all = [];
+  for (const raw of pieces) for (const sub of String(raw).split(/[_]/)) all.push(cleanPiece(sub));
+  // 1) 정확히 과목명인 조각
+  for (const x of all) { if (!x) continue; const s = findSubject(normName(x)); if (s && s.norm === normName(x)) return s; }
+  // 2) 조각 안에 과목명이 들어 있는 경우(예: "과학과 세포와 물질대사", "화법과 언어과")
+  for (const x of all) {
+    if (!x || SKIPW.test(x)) continue;
+    for (const y of [x.replace(/^\S+과\s+/, ''), x.replace(/과$/, '')]) {
+      if (normName(y).length < 4) continue; // "국어과" 같은 교과명은 과목으로 보지 않음
+      const s = findSubject(normName(y)); if (s && (s.norm === normName(y) || s.norm.length >= 4)) return s;
+    }
+  }
+  // 3) 목록에 없는 학교 지정·전문교과 과목 (일반 낱말·학과명·학교명은 제외)
+  for (const raw of name.matchAll(/[(\[]([^()\[\]]{2,40})[)\]]/g)) {
+    const x = cleanPiece(raw[1]);
+    if (!x || x.length > 20 || !/[가-힣]{2}/.test(x) || SKIPW.test(x) || GENERIC.test(NS(x)) || /\d{4}|[,，]/.test(x)) continue;
+    if (/(과|학과|계열|반)$/.test(x) && !/(과학|교과)$/.test(x)) continue; // 전기과·보건간호과 같은 학과명
+    if (/고$/.test(x)) continue; // 학교 약칭
+    return { name: x, norm: normName(x), group: '기타', curs: ['2015', '2022'], guessed: true };
   }
   return findSubject(normName(name.replace(/정보\s*공시/g, '')));
 }
