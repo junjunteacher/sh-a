@@ -319,14 +319,19 @@ function tasksFromPlan(tb) {
   return out;
 }
 function isPlanTable(tb) { const t = tNS(tb); return /수행평가/.test(t) && /반영|비율|영역/.test(t) && !/단원명|수업방법/.test(t.slice(0, 60)); }
-function isRubricTable(tb) {
-  if (tb.rows.length < 2 || tb.rows.length > 90) return false;
+function isRubricTable(tb, heading) {
+  if (tb.rows.length < 2 || tb.rows.length > 120) return false;
+  if (tb.rows[0].some(c => NOT_RUBRIC.test(NS(c.t)))) return false; // 주간 수업 계획표
   const head = NS(tb.rows.slice(0, 2).map(r => r.map(c => c.t).join(' ')).join(' '));
-  if (tb.rows[0].some(c => NOT_RUBRIC.test(NS(c.t)))) return false;
   const all = tNS(tb);
-  if (/성취수준/.test(head) && !/\d점/.test(all)) return false;
+  if (/^성취율/.test(head) || /^성취도/.test(head)) return false; // 성취율·성취도 기준표
+  const strong = /채점기준|채점요소|세부기준|배점|루브릭|채점|수행수준|척도/.test(all);
+  if (/성취수준/.test(head) && !strong) return false; // 성취수준만 적은 표
   if (isPlanTable(tb) && !RUBRIC_HEAD.test(head)) return false;
+  if (strong) return true;
   if (RUBRIC_HEAD.test(head)) return true;
+  // "5. 수행평가 세부 기준 / 가. ○○○" 바로 아래 표
+  if (heading && /수행평가|세부|채점|기준/.test(NS(heading)) && tb.rows.length >= 3) return true;
   const pts = (all.match(/\d+(\.\d+)?점/g) || []).length;
   return pts >= 3 && /(^|[^가-힣])(상|중|하|우수|보통|미흡|매우)/.test(all);
 }
@@ -456,11 +461,11 @@ function analyzeSegment(lines, seg, frags, pageOf, blocks) {
   const tables = [];
   if (segBlocks.length) {
     if (planTb) tables.push(packTable(planTb, 'plan', '평가 방법과 반영 비율'));
-    let lastP = '';
+    let lastP = '', prevP = '';
     const pIdx = segBlocks.indexOf(planTb);
     segBlocks.forEach((b, i) => {
-      if (b.type === 'p') { if (NS(b.text).length <= 80) lastP = b.text; return; }
-      if (b === planTb || tables.length >= 9 || !isRubricTable(b)) return;
+      if (b.type === 'p') { if (NS(b.text).length <= 80) { prevP = lastP; lastP = b.text; } return; }
+      if (b === planTb || tables.length >= 9 || !isRubricTable(b, prevP + ' ' + lastP)) return;
       if (planTb && i < pIdx) return; // 반영 비율 표 앞(주간 계획 등)은 건너뜀
       const tt = tNS(b) + NS(lastP);
       const task = [...names].sort((a, c) => NS(c).length - NS(a).length).find(n => NS(n).length >= 3 && tt.includes(NS(n))) || '';

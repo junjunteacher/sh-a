@@ -25,8 +25,8 @@ fs.mkdirSync(RAW, { recursive: true });
 const rawFile = path.join(RAW, `${sido}-${level}.json.gz`);
 const DETAIL = path.join(DATA, 'details', `${sido}-${level}`);
 fs.mkdirSync(DETAIL, { recursive: true });
-const VERSION = 3;     // 이번 검출 규칙 판
-const MIN_VERSION = 2; // 이 판보다 오래된 파일만 다시 처리(표 읽기가 없는 1판)
+const VERSION = 4;     // 이번 검출 규칙 판 (4: 채점 기준표 판정 확대)
+const MIN_VERSION = 4; // 이 판보다 오래된 파일은 다시 처리
 const detailFile = sid => path.join(DETAIL, `${sid}.json.gz`);
 function loadDetail(sid) { try { return JSON.parse(zlib.gunzipSync(fs.readFileSync(detailFile(sid))).toString('utf8')); } catch (e) { return { cases: {} }; } }
 function saveDetail(sid, d) {
@@ -153,4 +153,7 @@ async function main() {
   log(`끝: 첨부 ${nFiles}개 중 새로 처리 ${nNew}개, 오류 ${nErr}개, ${((Date.now() - started) / 60000).toFixed(1)}분`);
 }
 
+// 한 파일·한 응답에서 난 예기치 못한 오류로 전체 수집이 멈추지 않게 한다
+process.on('uncaughtException', e => console.log('  (건너뛴 오류)', String(e && e.message || e).slice(0, 200)));
+process.on('unhandledRejection', e => console.log('  (건너뛴 오류)', String(e && e.message || e).slice(0, 200)));
 main().catch(e => { console.error(e); process.exit(1); });

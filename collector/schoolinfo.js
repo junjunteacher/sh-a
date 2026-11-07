@@ -32,7 +32,8 @@ class Client {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), timeout);
       try {
-        const headers = { 'User-Agent': UA, 'Referer': BASE + '/ei/ss/pneiss_a03_s0.do', 'Accept-Language': 'ko-KR,ko;q=0.9' };
+        // 압축 전송(gzip) 끝에 찌꺼기가 붙은 응답 때문에 프로그램이 멈추는 일을 막으려고 압축 없이 받는다
+        const headers = { 'User-Agent': UA, 'Referer': BASE + '/ei/ss/pneiss_a03_s0.do', 'Accept-Language': 'ko-KR,ko;q=0.9', 'Accept-Encoding': 'identity' };
         if (this.cookies.size) headers.Cookie = this.cookieHeader();
         let body;
         if (form) { headers['Content-Type'] = 'application/x-www-form-urlencoded; charset=UTF-8'; headers['X-Requested-With'] = 'XMLHttpRequest'; body = new URLSearchParams(form).toString(); }
