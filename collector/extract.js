@@ -254,7 +254,8 @@ function cellsToRows(cells) {
   for (const r of rows) if (r) out.push(r.sort((a, b) => a.c - b.c).map(c => ({ t: c.lines.join('\n'), r: c.r, c: c.c, cs: c.cs, rs: c.rs, lines: c.lines })));
   return out;
 }
-const clean = s => String(s || '').replace(/[ \t ]+/g, ' ').trim();
+// 한글 문서의 Wingdings 체크상자는 글자 'gfedcb'(체크됨)·'gfedc'(빈칸)로 저장돼 있어 기호로 바꾼다
+const clean = s => String(s || '').replace(/gfedcb/g, '☑').replace(/gfedc/g, '☐').replace(/[ \t\u00a0]+/g, ' ').trim();
 
 // ---------- HWP 5.0 : 레코드 트리 ----------
 function hwpRecords(data) {

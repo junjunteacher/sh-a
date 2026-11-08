@@ -510,6 +510,7 @@ async function loadDetail(r) {
   const d = await detailCache.get(url);
   return d && d.cases ? d.cases[r.id] : null;
 }
+const box = s => String(s || '').replace(/gfedcb/g, '☑').replace(/gfedc/g, '☐');
 function tableHtml(t, tasks) {
   const hit = new Set((tasks || []).map(NS));
   const firstCols = new Set();
@@ -517,7 +518,7 @@ function tableHtml(t, tasks) {
     const cls = [];
     if (ri > 0 && c === 0) cls.push('lab');
     if (ri > 0 && hit.has(NS(tx))) cls.push('hit');
-    return `<td${cs > 1 ? ` colspan="${cs}"` : ''}${rs > 1 ? ` rowspan="${rs}"` : ''}${cls.length ? ` class="${cls.join(' ')}"` : ''}>${esc(tx)}</td>`;
+    return `<td${cs > 1 ? ` colspan="${cs}"` : ''}${rs > 1 ? ` rowspan="${rs}"` : ''}${cls.length ? ` class="${cls.join(' ')}"` : ''}>${esc(box(tx))}</td>`;
   }).join('') + '</tr>').join('');
   return `<div class="tbwrap"><table class="doc">${rows}</table></div>`;
 }
@@ -534,7 +535,7 @@ async function showDetail(id) {
     <div id="dTables"><div class="loading">평가 기준표를 불러오는 중…</div></div>
     <details class="raw"><summary>성취기준 · 자동 추출 원문 일부</summary>
       <div class="small" style="margin:8px 0"><b>성취기준</b> ${(r.st || []).map(esc).join(' ') || '—'}</div>
-      <div class="excerpt">${esc((r.ex || '').replace(/ \/ /g, '\n'))}</div>
+      <div class="excerpt">${esc(box(r.ex || '').replace(/ \/ /g, '\n'))}</div>
     </details>
     <div class="small muted" style="margin-top:10px">원문 파일: ${esc(r.fn)}${r.doc ? ' › ' + esc(r.doc) : ''}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">

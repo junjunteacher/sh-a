@@ -337,7 +337,7 @@ function isRubricTable(tb, heading) {
 }
 function packTable(tb, kind, title, task) {
   rowIndexOf(tb);
-  return { k: kind, ti: title || '', ta: task || '', r: tb.rows.slice(0, 60).map(row => row.map(c => [String(c.t).slice(0, 500), c.c, c.cs || 1, c.rs || 1])) };
+  return { k: kind, ti: title || '', ta: task || '', r: tb.rows.slice(0, 150).map(row => row.map(c => [String(c.t).slice(0, 500), c.c, c.cs || 1, c.rs || 1])) };
 }
 
 // ---- PDF: 좌표 조각으로 표 비슷하게 만들기 ----
