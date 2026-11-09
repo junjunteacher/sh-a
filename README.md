@@ -59,6 +59,13 @@ node collector/build.js                                 # 웹앱용 색인 만�
 - **비교**: 최대 4개 나란히
 - **검토함**: 채택 / 수정해서 쓰기 / 보류 표시와 메모(브라우저에 저장), 엑셀 내려받기
 
+## 4-1. 앱으로 설치
+
+- 크롬·엣지: 오른쪽 위 **⤓ 앱 설치** 버튼(또는 주소창의 설치 아이콘) → 바탕화면·시작 메뉴에 앱으로 생깁니다.
+- 안드로이드 크롬: 같은 버튼 또는 메뉴 → 홈 화면에 추가.
+- 아이폰·아이패드: 사파리 공유(□↑) → 홈 화면에 추가.
+- 한 번 본 과목·평가표는 저장되어 인터넷이 약해도 빨리 열립니다.
+
 ## 5. 폴더 구성
 
 ```
@@ -70,6 +77,9 @@ collector/
   collect.js      시·도 단위 수집(이어하기 지원) → docs/data/raw/*.json.gz
   build.js        raw → docs/data/meta.json, docs/data/subjects/*.json
 docs/index.html   웹앱(단일 파일)
+docs/sw.js, manifest.webmanifest, icons/   앱 설치용
+docs/_config.yml  Pages 배포에서 data/details·data/raw 제외(배포 시간 단축)
+docs/data/dpack/  학교별 상세(평가표)를 지역별로 묶은 파일 — build.js가 만듦
 .github/workflows/collect.yml   자동 수집
 ```
 

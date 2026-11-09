@@ -1,0 +1,20 @@
+{
+  "name": "수행평가 아이디어 아카이브",
+  "short_name": "수행평가 아카이브",
+  "description": "학교알리미 평가계획에서 자동으로 모은 전국 고등학교 수행평가·채점 기준표 검색",
+  "lang": "ko",
+  "start_url": "./#v=cases",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4ee",
+  "theme_color": "#1d5c63",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "사례 찾기", "url": "./#v=cases", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "검토함", "url": "./#v=review", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

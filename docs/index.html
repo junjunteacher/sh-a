@@ -2,10 +2,19 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1d5c63">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="수행평가 아카이브">
 <title>수행평가 아이디어 아카이브 · 학교알리미 자동 수집</title>
 <meta name="description" content="학교알리미에 공시된 교과별 교수·학습 및 평가계획에서 수행평가를 자동으로 찾아 학교·과목·방식별로 검색하고 비교합니다.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("suhaeng-theme")||"base"}catch(e){}</script>
 <style>
 :root{
   --paper:#f6f4ee; --card:#fffdf8; --ink:#1f2a2e; --ink2:#55626a; --line:#e2ddd0; --soft:#efeadf;
@@ -62,6 +71,71 @@ select,input[type=search],input[type=text],textarea{width:100%;border:1px solid 
 textarea{min-height:70px;resize:vertical}
 .searchrow{grid-column:1/-1;display:flex;gap:8px}
 .searchrow input{flex:1}
+.searchopt{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.searchopt select{width:auto}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink);margin:0!important}
+.sugrow{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+.sugrow .line{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sugrow .lab{font-size:12px;font-weight:700;color:var(--ink2);min-width:92px}
+.chip.sug{background:var(--soft)}
+.chip.rec{background:#fff;border-style:dashed}
+.why{font-size:12px;color:var(--ink2);margin-top:4px}
+.why b{color:var(--teal)}
+.sim{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.sim a{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);text-decoration:none;color:var(--ink)}
+.sim a:hover{border-color:var(--teal2)}
+.sim small{color:var(--ink2)}
+/* 사례 찾기 머리 */
+.phead{display:flex;align-items:flex-end;gap:16px;margin:22px 0 12px;padding-bottom:12px;border-bottom:2px solid var(--ink)}
+.phead h2{margin:2px 0 0;font-size:28px;letter-spacing:-.6px}
+.eyebrow{font-size:12px;font-weight:700;color:var(--teal2);letter-spacing:.4px}
+.bignum{margin-left:auto;text-align:right;line-height:1.1}
+.bignum b{display:block;font-size:34px;font-weight:900;letter-spacing:-1px;color:var(--teal);font-variant-numeric:tabular-nums}
+.bignum span{font-size:12px;color:var(--ink2)}
+/* 보기 전환 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:5px 11px;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer}
+.seg button.on{background:var(--teal);color:#fff}
+/* 요약 띠 */
+.insight{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.insight:empty{display:none}
+.insight .k{padding:10px 14px;border-right:1px dashed var(--line)}
+.insight .k:last-child{border-right:0}
+.insight .k small{display:block;font-size:11.5px;color:var(--ink2);font-weight:700}
+.insight .k b{font-size:19px;font-variant-numeric:tabular-nums}
+.insight .k a{font-size:12px;font-weight:700;margin-left:4px;cursor:pointer}
+@media(max-width:760px){.insight{grid-template-columns:1fr 1fr}.insight .k:nth-child(2){border-right:0}}
+/* 한눈에 보기(행) */
+.rowlist{border:1px solid var(--line);border-radius:12px;background:var(--card);overflow:hidden}
+.rhead,.rrow{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1.35fr) 150px 132px;gap:14px;padding:12px 16px}
+.rhead{background:var(--soft);font-size:11.5px;font-weight:800;color:var(--ink2);letter-spacing:.3px;padding-top:8px;padding-bottom:8px}
+.rrow{border-top:1px solid var(--line);align-items:start}
+.rrow:hover{background:color-mix(in srgb,var(--tealbg) 35%,transparent)}
+.rrow .sub{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--teal2);border-radius:5px;padding:1px 7px;margin-right:4px}
+.rrow .meta1{font-size:12px;color:var(--ink2);margin-bottom:5px}
+.rrow ol{margin:0;padding-left:18px;font-weight:700;font-size:14px}
+.rrow ol li{margin:1px 0}
+.rrow ol li.none{list-style:none;margin-left:-18px;font-weight:400;color:var(--ink2);font-size:13px}
+.rrow .sch2{font-size:12.5px;color:var(--ink2);margin-top:6px}
+.rrow .sch2 b{color:var(--ink)}
+.rrow dl{display:grid;grid-template-columns:58px 1fr;gap:3px 8px;margin:0;font-size:12.5px}
+.rrow dt{color:var(--ink2);font-weight:700}
+.rrow dd{margin:0;overflow-wrap:anywhere}
+.rrow dd.ex{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink)}
+.ev{display:grid;gap:3px}
+.ev .lv{display:flex;align-items:baseline;gap:4px;margin-bottom:2px}
+.ev .lv b{font-size:22px;font-weight:900;color:var(--teal)}
+.ev .lv span{font-size:12px;color:var(--ink2)}
+.ev i{font-style:normal;font-size:12px;display:flex;align-items:center;gap:5px;color:var(--ink2)}
+.ev i:before{content:"";width:14px;height:6px;border-radius:3px;background:var(--line)}
+.ev i.y{color:var(--ink);font-weight:600}
+.ev i.y:before{background:var(--teal2)}
+.racts{display:grid;gap:6px}
+.racts .btn{width:100%;text-align:center}
+@media(max-width:900px){.rhead{display:none}.rrow{grid-template-columns:1fr 1fr}.ev,.racts{grid-column:auto}}
+@media(max-width:560px){.rrow{grid-template-columns:1fr}}
+#btnInstall{display:none;margin-left:6px}
+#btnInstall.show{display:inline-block}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:12.5px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
@@ -127,6 +201,79 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--ink2);font-si
 ol.flow{counter-reset:f;list-style:none;padding:0;margin:0;display:grid;gap:10px}
 ol.flow li{counter-increment:f;padding:12px 14px 12px 48px;position:relative;background:var(--soft);border-radius:10px}
 ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+
+/* ================= 테마 ================= */
+.themepick{display:flex;gap:4px;margin-left:8px}
+.themepick button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.themepick button.on{box-shadow:0 0 0 2px var(--teal)}
+.themepick [data-theme="base"]{background:linear-gradient(135deg,#f6f4ee 50%,#1d5c63 50%)}
+.themepick [data-theme="pin"]{background:radial-gradient(circle at 50% 35%,#d64541 0 28%,transparent 30%),#c9a26b}
+.themepick [data-theme="blue"]{background:linear-gradient(135deg,#dbeafe 50%,#1e4a8c 50%)}
+
+/* --- 핀앤페이퍼: 코르크 게시판 + 압정으로 꽂은 종이 --- */
+html[data-theme="pin"]{
+  --paper:#c9a26b; --card:#fffdf6; --ink:#2b2622; --ink2:#6b5d50; --line:#e6dccb; --soft:#f4ecdc;
+  --teal:#8a3b2e; --teal2:#b5523f; --tealbg:#f7e3da; --amber:#9a6a12; --amberbg:#fdf1d4;
+  --shadow:0 2px 3px rgba(60,35,10,.18),0 10px 22px rgba(60,35,10,.16);
+}
+html[data-theme="pin"] body{
+  background-color:#c9a26b;
+  background-image:radial-gradient(rgba(90,55,20,.22) 1px,transparent 1.6px),radial-gradient(rgba(255,240,210,.25) 1px,transparent 1.8px),radial-gradient(rgba(120,75,30,.18) 1.4px,transparent 2px);
+  background-size:7px 7px,11px 11px,17px 17px;background-position:0 0,3px 5px,8px 2px;
+}
+html[data-theme="pin"] header.top{background:#5b3a21;border-bottom:0;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+html[data-theme="pin"] header.top .logo,html[data-theme="pin"] nav.tabs button{color:#f6e7cf}
+html[data-theme="pin"] nav.tabs button.on{background:#f6e7cf;color:#5b3a21}
+html[data-theme="pin"] .logo .mk{background:#d64541}
+html[data-theme="pin"] .seal{background:#fff8ec}
+html[data-theme="pin"] h1,html[data-theme="pin"] h2,html[data-theme="pin"] .case .sch,html[data-theme="pin"] .secttl b{font-family:"Gaegu","Nanum Pen Script",Pretendard,sans-serif;letter-spacing:0}
+html[data-theme="pin"] h1{font-size:34px} html[data-theme="pin"] h2{font-size:26px;color:#fff8ec;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+html[data-theme="pin"] .modal h2{color:var(--ink);text-shadow:none}
+html[data-theme="pin"] .case .sch{font-size:21px}
+html[data-theme="pin"] .card{border:0;border-radius:3px;position:relative}
+html[data-theme="pin"] .card:not(.box):not(.filters)::before{content:"";position:absolute;top:-7px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ff9b8f,#d64541 45%,#8e211c);box-shadow:1px 3px 3px rgba(0,0,0,.35);z-index:2}
+html[data-theme="pin"] .case:nth-child(4n+1){transform:rotate(-.35deg)} html[data-theme="pin"] .case:nth-child(4n+2){transform:rotate(.3deg)}
+html[data-theme="pin"] .case:nth-child(4n+3){transform:rotate(-.15deg);background:#fff9e3} html[data-theme="pin"] .case:nth-child(4n){transform:rotate(.4deg);background:#f3f8ff}
+html[data-theme="pin"] .filters{background:#fffdf6;background-image:repeating-linear-gradient(transparent 0 27px,#e9dfcc 27px 28px)}
+html[data-theme="pin"] .filters::after{content:"";position:absolute;top:-10px;right:28px;width:90px;height:22px;background:rgba(255,236,170,.75);transform:rotate(-4deg);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+html[data-theme="pin"] .stat{background:#fff4dc;border:1px dashed #d9c39b}
+html[data-theme="pin"] .resbar b,html[data-theme="pin"] .resbar .muted{color:#fff8ec;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+html[data-theme="pin"] footer{color:#fff3df;border-top-color:rgba(0,0,0,.15)}
+html[data-theme="pin"] .modal .box{background:#fffdf6;background-image:repeating-linear-gradient(transparent 0 29px,#efe6d4 29px 30px)}
+html[data-theme="pin"] .taskchips span{background:#ffe9a8;color:#5b3a21;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.15);transform:rotate(-1deg)}
+html[data-theme="pin"] table.doc tr:first-child td{background:#f6e7cf}
+
+/* --- 블루 메모: 모눈 공책 + 파란 메모지 --- */
+html[data-theme="blue"]{
+  --paper:#eef4fb; --card:#ffffff; --ink:#14284b; --ink2:#4a5f82; --line:#cfdcef; --soft:#e7effa;
+  --teal:#1e4a8c; --teal2:#3a6fc4; --tealbg:#dde9fb; --amber:#8a5a00; --amberbg:#fff3d6;
+  --shadow:0 1px 2px rgba(20,40,75,.08),0 8px 20px rgba(20,40,75,.08);
+}
+html[data-theme="blue"] body{
+  background-color:#eef4fb;
+  background-image:linear-gradient(rgba(58,111,196,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(58,111,196,.10) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+html[data-theme="blue"] header.top{background:#1e4a8c;border-bottom:0}
+html[data-theme="blue"] header.top .logo,html[data-theme="blue"] nav.tabs button{color:#e3eeff}
+html[data-theme="blue"] nav.tabs button.on{background:#fff;color:#1e4a8c}
+html[data-theme="blue"] .logo .mk{background:#7fb2ff;color:#0f2a55}
+html[data-theme="blue"] .seal{background:#fff}
+html[data-theme="blue"] h1,html[data-theme="blue"] h2,html[data-theme="blue"] .secttl b{font-family:"Gowun Dodum",Pretendard,sans-serif}
+html[data-theme="blue"] .card{border:1px solid #c4d6f2;border-radius:6px;position:relative}
+html[data-theme="blue"] .case{background:#f4f8ff;border-left:6px solid #3a6fc4}
+html[data-theme="blue"] .case:nth-child(3n+2){background:#eef6ff;border-left-color:#5d8fe0}
+html[data-theme="blue"] .case:nth-child(3n){background:#f6fbff;border-left-color:#2a5aa8}
+html[data-theme="blue"] .case::after,html[data-theme="blue"] .hero::after{content:"";position:absolute;top:-9px;left:34px;width:70px;height:20px;background:rgba(127,178,255,.55);transform:rotate(3deg);border-radius:2px}
+html[data-theme="blue"] .filters{background:#fff;background-image:repeating-linear-gradient(transparent 0 27px,#e3ecf9 27px 28px);border-top:4px solid #3a6fc4}
+html[data-theme="blue"] .stat{background:#dde9fb}
+html[data-theme="blue"] .stat b{color:#1e4a8c}
+html[data-theme="blue"] .modal .box{background:#fbfdff;border-top:6px solid #3a6fc4}
+html[data-theme="blue"] .taskchips span{background:#3a6fc4;color:#fff}
+html[data-theme="blue"] table.doc tr:first-child td{background:#dde9fb;color:#14284b}
+html[data-theme="blue"] table.doc td{border-color:#c4d6f2}
+html[data-theme="blue"] table.doc td.lab{background:#eef4fb}
 </style>
 </head>
 <body>
@@ -141,6 +288,12 @@ ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:
     <button data-go="review">검토함 <span class="n" id="nRev">0</span></button>
     <button data-go="about">자료 안내</button>
   </nav>
+  <button class="btn sm pri" id="btnInstall" title="이 컴퓨터·휴대폰에 앱으로 설치">⤓ 앱 설치</button>
+  <div class="themepick" id="themePick" title="디자인 고르기">
+    <button data-theme="base" title="기본"></button>
+    <button data-theme="pin" title="핀앤페이퍼"></button>
+    <button data-theme="blue" title="블루 메모"></button>
+  </div>
 </div></header>
 
 <main class="wrap">
@@ -173,7 +326,10 @@ ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:
 
   <!-- 사례 찾기 -->
   <section id="v-cases" class="hidden">
-    <h2>사례 찾기</h2>
+    <div class="phead">
+      <div><div class="eyebrow">학교알리미 평가계획 자동 수집</div><h2>사례 찾기</h2></div>
+      <div class="bignum"><b id="bigCount">–</b><span>지금 조건의 사례</span></div>
+    </div>
     <div class="card filters" id="filters">
       <div><label>교과군</label><select id="fGroup"></select></div>
       <div><label>과목</label><select id="fSubject"></select></div>
@@ -186,8 +342,17 @@ ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:
       <div style="grid-column:1/-1"><label>평가 방법</label><div class="chips" id="fMethods"></div></div>
       <div style="grid-column:1/-1"><label>활동 특징</label><div class="chips" id="fTags"></div></div>
       <div class="searchrow"><input type="search" id="fQ" placeholder="검색어 (예: 독서, 탐구 보고서, 생태, [12생과01-02], ○○고) — 띄어 쓰면 모두 포함"><button class="btn pri" id="btnSearch">검색</button><button class="btn" id="btnReset">초기화</button></div>
+      <div class="searchopt">
+        <label class="chk"><input type="checkbox" id="fSyn" checked> 비슷한 말도 찾기 <span class="muted small">(보고서↔리포트·소논문, 토론↔토의, AI↔인공지능 …)</span></label>
+        <select id="fPw" title="수행평가 반영 비율"><option value="">반영 비율 전체</option><option value="0-20">20% 이하</option><option value="21-30">21~30%</option><option value="31-40">31~40%</option><option value="41-99">41~99%</option><option value="100-100">100%</option></select>
+        <button class="btn sm" id="btnLink" title="지금 조건을 링크로 복사">🔗 조건 링크 복사</button>
+      </div>
+      <div class="sugrow" id="sugRow"></div>
     </div>
-    <div class="resbar"><b id="resCount">–</b><span class="muted small" id="resCond"></span><span class="sp"></span><button class="btn sm" id="btnXlsx">엑셀로 내려받기</button></div>
+    <div class="insight" id="insight"></div>
+    <div class="resbar"><b id="resCount">–</b><span class="muted small" id="resCond"></span><span class="sp"></span>
+      <div class="seg" id="viewSeg" title="보기 방식"><button data-view="row">≡ 한눈에</button><button data-view="card">▦ 카드</button></div>
+      <button class="btn sm" id="btnXlsx">엑셀로 내려받기</button></div>
     <div id="results"></div>
     <div class="pager" id="pager"></div>
   </section>
@@ -269,7 +434,7 @@ const store = {
 
 let META = null;
 const cache = new Map(); // file → rows
-const S = { group: '', subject: '', cur: '', grade: '', sem: '', sido: '', dist: '', sort: 'score', hasTask: '', methods: [], tags: [], q: '', page: 1 };
+const S = { group: '', subject: '', cur: '', grade: '', sem: '', sido: '', dist: '', sort: 'score', hasTask: '', pw: '', syn: '1', methods: [], tags: [], q: '', page: 1 };
 let current = []; // 필터 결과
 let cmp = store.get('suhaeng-cmp', []);   // 사례 스냅숏 배열
 let review = store.get('suhaeng-review', {}); // id → {status, memo, row}
@@ -294,7 +459,8 @@ document.addEventListener('click', e => {
 function writeHash(view) {
   const p = new URLSearchParams();
   p.set('v', view || curView());
-  for (const k of ['group','subject','cur','grade','sem','sido','dist','sort','hasTask','q']) if (S[k]) p.set(k, S[k]);
+  for (const k of ['group','subject','cur','grade','sem','sido','dist','sort','hasTask','pw','q']) if (S[k]) p.set(k, S[k]);
+  if (S.syn !== '1') p.set('syn', '0');
   if (S.methods.length) p.set('m', S.methods.join(','));
   if (S.tags.length) p.set('t', S.tags.join(','));
   if (S.page > 1) p.set('p', S.page);
@@ -302,7 +468,8 @@ function writeHash(view) {
 }
 function readHash() {
   const p = new URLSearchParams(location.hash.slice(1));
-  for (const k of ['group','subject','cur','grade','sem','sido','dist','sort','hasTask','q']) if (p.get(k)) S[k] = p.get(k);
+  for (const k of ['group','subject','cur','grade','sem','sido','dist','sort','hasTask','pw','q']) if (p.get(k)) S[k] = p.get(k);
+  if (p.get('syn') === '0') S.syn = '0';
   if (p.get('m')) S.methods = p.get('m').split(',');
   if (p.get('t')) S.tags = p.get('t').split(',');
   if (p.get('p')) S.page = +p.get('p') || 1;
@@ -321,7 +488,7 @@ async function loadFiles(files, onProg) {
   const out = [];
   await Promise.all(files.map(async f => {
     if (!cache.has(f)) {
-      const r = await fetch(DATA_URL + 'subjects/' + f);
+      const r = await fetch(DATA_URL + 'subjects/' + f + '?v=' + encodeURIComponent(META.built || ''));
       cache.set(f, r.ok ? await r.json() : []);
     }
     out.push(...cache.get(f));
@@ -346,6 +513,7 @@ function buildFilters() {
   const sidos = Object.keys(META.regions).sort((a, b) => a.localeCompare(b, 'ko'));
   fillSelect($('#fSido'), [['', '전국'], ...sidos.map(s => [s, s])], S.sido);
   buildDist();
+  $('#fPw').value = S.pw; $('#fSyn').checked = S.syn === '1';
   $('#fCur').value = S.cur; $('#fGrade').value = S.grade; $('#fSem').value = S.sem; $('#fSort').value = S.sort; $('#fHasTask').value = S.hasTask; $('#fQ').value = S.q;
   $('#fMethods').innerHTML = METHODS.map(m => `<span class="chip${S.methods.includes(m) ? ' on' : ''}" data-m="${esc(m)}">${esc(m)}<span class="c" data-cm="${esc(m)}"></span></span>`).join('');
   $('#fTags').innerHTML = TAGS.map(t => `<span class="chip${S.tags.includes(t) ? ' on' : ''}" data-t="${esc(t)}">${esc(t)}<span class="c" data-ct="${esc(t)}"></span></span>`).join('');
@@ -365,28 +533,81 @@ function bindFilters() {
   for (const [id, k] of [['#fCur','cur'],['#fGrade','grade'],['#fSem','sem'],['#fSort','sort'],['#fHasTask','hasTask']]) $(id).onchange = e => { S[k] = e.target.value; apply(); };
   $('#fMethods').onclick = e => { const c = e.target.closest('[data-m]'); if (!c) return; const m = c.dataset.m; S.methods = S.methods.includes(m) ? S.methods.filter(x => x !== m) : [...S.methods, m]; c.classList.toggle('on'); apply(); };
   $('#fTags').onclick = e => { const c = e.target.closest('[data-t]'); if (!c) return; const t = c.dataset.t; S.tags = S.tags.includes(t) ? S.tags.filter(x => x !== t) : [...S.tags, t]; c.classList.toggle('on'); apply(); };
-  $('#btnSearch').onclick = () => { S.q = $('#fQ').value.trim(); apply(); };
-  $('#fQ').onkeydown = e => { if (e.key === 'Enter') { S.q = e.target.value.trim(); apply(); } };
-  $('#btnReset').onclick = () => { Object.assign(S, { group: '', subject: '', cur: '', grade: '', sem: '', sido: '', dist: '', sort: 'score', hasTask: '', methods: [], tags: [], q: '', page: 1 }); buildFilters(); apply(); };
+  $('#btnSearch').onclick = () => doSearch($('#fQ').value);
+  $('#fQ').onkeydown = e => { if (e.key === 'Enter') doSearch(e.target.value); };
+  $('#fPw').onchange = e => { S.pw = e.target.value; apply(); };
+  $('#fSyn').onchange = e => { S.syn = e.target.checked ? '1' : '0'; apply(); };
+  $('#btnLink').onclick = async () => { writeHash('cases'); try { await navigator.clipboard.writeText(location.href); alertBar('지금 조건이 담긴 링크를 복사했습니다. 동료 선생님께 보내 보세요.'); } catch (e) { prompt('아래 링크를 복사하세요', location.href); } };
+  $('#sugRow').onclick = e => {
+    const c = e.target.closest('[data-sq]'); if (c) { const w = c.dataset.sq; const cur = S.q ? S.q.split(/\s+/) : []; if (!cur.includes(w)) cur.push(w); doSearch(cur.join(' ')); return; }
+    const r = e.target.closest('[data-rq]'); if (r) doSearch(r.dataset.rq);
+    const x = e.target.closest('[data-rqx]'); if (x) { e.stopPropagation(); recent = recent.filter(q => q !== x.dataset.rqx); store.set('suhaeng-recent', recent); renderSug(lastBase); }
+  };
+  $('#btnReset').onclick = () => { Object.assign(S, { group: '', subject: '', cur: '', grade: '', sem: '', sido: '', dist: '', sort: 'score', hasTask: '', pw: '', syn: '1', methods: [], tags: [], q: '', page: 1 }); buildFilters(); apply(); };
   $('#btnXlsx').onclick = () => exportXlsx(current, '수행평가_사례');
 }
 
 // ---------- 거르기 ----------
+// 비슷한 말 묶음: 하나로 검색하면 묶음 안의 말도 함께 찾는다
+const SYN = [
+  ['보고서', '리포트', '소논문', '탐구보고서', '연구보고서'], ['발표', '프레젠테이션', '스피치', '구술'], ['토론', '토의', '논쟁', '디베이트'],
+  ['독서', '독후', '도서', '책읽기', '한학기한권'], ['글쓰기', '작문', '쓰기', '에세이', '서평', '논술'], ['실험', '실습', '탐구실험'],
+  ['ai', '인공지능', '챗gpt', '생성형'], ['코딩', '프로그래밍', '파이썬', '알고리즘'], ['포트폴리오', '누적기록', '학습지'],
+  ['프로젝트', 'pbl', '프로젝트학습'], ['영상', '동영상', 'ucc', '브이로그'], ['카드뉴스', '포스터', '인포그래픽', '홍보물'],
+  ['감상', '비평', '감상문', '비평문'], ['창작', '작곡', '작품만들기'], ['조사', '설문', '인터뷰', '면담'], ['모둠', '협력', '협업', '팀'],
+  ['환경', '생태', '기후', '탄소'], ['진로', '직업', '전공'], ['신문', '기사', '뉴스'], ['연극', '역할극', '상황극'], ['캠페인', '실천', '봉사'],
+  ['수학', '수리'], ['그래프', '도표', '통계'], ['모형', '모델', '모델링'], ['문제해결', '해결방안', '대안제시'],
+];
+const synMap = new Map();
+for (const g of SYN) for (const w of g) synMap.set(NS(w), g.map(NS));
+function terms() {
+  return (S.q ? S.q.split(/\s+/) : []).map(NS).filter(Boolean).map(q => {
+    let alts = [q];
+    if (S.syn === '1') for (const [k, g] of synMap) if (k === q || (q.length >= 2 && k.includes(q) && k.length - q.length <= 2)) alts = [...new Set([...alts, ...g])];
+    return alts;
+  });
+}
 function rowText(r) {
-  if (!r._txt) r._txt = NS([r.s, r.r, r.d, r.sub, (r.t || []).join(' '), (r.st || []).join(' '), r.ex, r.fn].join(' '));
+  if (!r._txt) r._txt = NS([r.s, r.r, r.d, r.sub, (r.t || []).join(' '), (r.st || []).join(' '), r.rk || '', r.ex, r.fn].join(' '));
   return r._txt;
 }
+function pwOk(r) {
+  if (!S.pw) return true;
+  const [a, b] = S.pw.split('-').map(Number);
+  return r.pw != null && r.pw >= a && r.pw <= b;
+}
 function filterRows(rows, opt = {}) {
-  const qs = S.q ? S.q.split(/\s+/).map(NS).filter(Boolean) : [];
+  const qs = opt.skipQ ? [] : terms();
   return rows.filter(r =>
     (!S.cur || r.cur === S.cur) && (!S.grade || String(r.g) === S.grade) && (!S.sem || String(r.se) === S.sem) &&
-    (!S.sido || r.r === S.sido) && (!S.dist || r.d === S.dist) && (!S.hasTask || (S.hasTask === '2' ? r.nt > 0 : (r.t && r.t.length))) &&
+    (!S.sido || r.r === S.sido) && (!S.dist || r.d === S.dist) && (!S.hasTask || (S.hasTask === '2' ? r.nt > 0 : (r.t && r.t.length))) && pwOk(r) &&
     (opt.skipMethods || S.methods.every(m => (r.m || []).includes(m))) &&
     (opt.skipTags || S.tags.every(t => (r.tg || []).includes(t))) &&
-    qs.every(q => rowText(r).includes(q)));
+    qs.every(alts => alts.some(q => rowText(r).includes(q))));
+}
+// 검색어가 어디에 나왔는지로 관련도 점수(과제명 > 학교·과목 > 채점 기준 > 나머지)
+function relevance(r, qs) {
+  let sc = 0; const why = new Set();
+  const T = NS((r.t || []).join(' ')), SS = NS(r.s + ' ' + r.sub), RK = NS(r.rk || '');
+  for (const alts of qs) {
+    let best = 0, w = '';
+    for (const q of alts) {
+      const v = T.includes(q) ? (q === alts[0] ? 10 : 7) : SS.includes(q) ? 6 : RK.includes(q) ? 4 : rowText(r).includes(q) ? 1 : 0;
+      if (v > best) { best = v; w = v >= 7 ? '과제명' : v === 6 ? '학교·과목' : v === 4 ? '채점 기준' : '평가표'; }
+    }
+    sc += best; if (w) why.add(w);
+  }
+  r._why = [...why];
+  return sc;
 }
 function sortRows(rows) {
   const k = S.sort;
+  const qs = terms();
+  if (qs.length && k === 'score') {
+    for (const r of rows) r._rel = relevance(r, qs);
+    return rows.sort((a, b) => b._rel - a._rel || ((b.nt > 0) - (a.nt > 0)) || (b.sc || 0) - (a.sc || 0));
+  }
+  for (const r of rows) r._why = null;
   const by = {
     score: (a, b) => ((b.nt > 0) - (a.nt > 0)) || (b.sc || 0) - (a.sc || 0) || (b.t || []).length - (a.t || []).length,
     school: (a, b) => a.s.localeCompare(b.s, 'ko'),
@@ -404,8 +625,28 @@ function condText() {
   a.push(S.dist ? `${S.sido} ${S.dist}` : (S.sido || '전국'));
   if (S.methods.length) a.push('방법: ' + S.methods.join('+'));
   if (S.tags.length) a.push('특징: ' + S.tags.join('+'));
-  if (S.q) a.push(`“${S.q}”`);
+  if (S.pw) a.push('수행 ' + $('#fPw').selectedOptions[0].textContent);
+  if (S.q) a.push(`“${S.q}”${S.syn === '1' ? '(비슷한 말 포함)' : ''}`);
   return a.join(' · ');
+}
+
+let recent = store.get('suhaeng-recent', []);
+let lastBase = [];
+function doSearch(q) {
+  S.q = String(q || '').trim(); $('#fQ').value = S.q;
+  if (S.q) { recent = [S.q, ...recent.filter(x => x !== S.q)].slice(0, 8); store.set('suhaeng-recent', recent); }
+  apply();
+}
+const SUG_STOP = new Set('하기 및 의 를 을 에 대한 위한 통한 활용한 이용한 관련 작성 활동 평가 수행 과제 하는 한 과 와 으로 로 에서 등 나의 우리 내가 기반 중심 바탕 그리고'.split(' '));
+function renderSug(base) {
+  lastBase = base;
+  const cnt = new Map();
+  for (const r of base) for (const w of new Set((r.t || []).join(' ').replace(/[()\[\]·,:/]/g, ' ').split(/\s+/).map(w => w.replace(/(하기|을|를|의|에|와|과|으로|로|에서|하여)$/, '')).filter(w => w.length >= 2 && !SUG_STOP.has(w) && !/^\d/.test(w)))) cnt.set(w, (cnt.get(w) || 0) + 1);
+  const qset = new Set((S.q || '').split(/\s+/));
+  const top = [...cnt].filter(([w]) => !qset.has(w)).sort((a, b) => b[1] - a[1]).slice(0, 14);
+  $('#sugRow').innerHTML =
+    (top.length ? `<div class="line"><span class="lab">자주 나오는 과제 말</span>${top.map(([w, n]) => `<span class="chip sug" data-sq="${esc(w)}">${esc(w)}<span class="c">${n}</span></span>`).join('')}</div>` : '') +
+    (recent.length ? `<div class="line"><span class="lab">최근 검색</span>${recent.map(q => `<span class="chip rec" data-rq="${esc(q)}">${esc(q)} <span data-rqx="${esc(q)}" title="지우기">×</span></span>`).join('')}</div>` : '');
 }
 
 let applySeq = 0;
@@ -422,6 +663,7 @@ async function apply(keepPage) {
   const rows = await scopeRows();
   if (my !== applySeq) return;
   current = sortRows(filterRows(rows));
+  renderSug(current.length ? current : filterRows(rows, { skipQ: true }));
   // 칩 옆 개수(해당 칩 조건만 빼고 센 값)
   const baseM = filterRows(rows, { skipMethods: true }), baseT = filterRows(rows, { skipTags: true });
   document.querySelectorAll('[data-cm]').forEach(el => { const m = el.dataset.cm; el.textContent = baseM.filter(r => (r.m || []).includes(m)).length.toLocaleString(); });
@@ -452,17 +694,68 @@ function caseCard(r) {
       </div>
     </div>
     <ul class="tasks">${tasks}</ul>
+    ${r._why && r._why.length ? `<div class="why">검색어가 나온 곳: ${r._why.map(w => `<b>${w}</b>`).join(' · ')}</div>` : ''}
     <div>${r.cur ? `<span class="tag cur">${esc(r.cur)} 개정${r.ca ? '(추정)' : ''}</span>` : ''}${r.pw != null ? `<span class="tag w">수행평가 ${r.pw}%</span>` : ''}${r.nt ? `<span class="tag" style="background:#e5f2e5;color:#2e7d32">표 ${r.nt}개</span>` : ''}${(r.m || []).map(m => `<span class="tag m">${esc(m)}</span>`).join('')}${(r.tg || []).map(t => `<span class="tag">#${esc(t)}</span>`).join('')}
       <span class="score" title="채점 기준·성취기준·배점·방법이 문서에서 함께 확인되는 정도">근거 <i><b style="width:${r.sc || 0}%"></b></i>${r.sc || 0}</span></div>
   </div>`;
 }
+let VIEW = store.get('suhaeng-view', 'row');
+function evChecks(r) {
+  return [['채점 기준표', r.nt > 0], ['과제명', (r.t || []).length > 0], ['성취기준', (r.st || []).length > 0], ['반영 비율', r.pw != null], ['평가 방법', (r.m || []).length > 0]];
+}
+function caseRow(r) {
+  const inCmp = cmp.some(c => c.id === r.id), rv = review[r.id];
+  const ck = evChecks(r), ok = ck.filter(c => c[1]).length;
+  const tasks = (r.t || []).length ? r.t.slice(0, 5).map(t => `<li>${hl(t)}</li>`).join('') + (r.t.length > 5 ? `<li class="none">외 ${r.t.length - 5}개</li>` : '') : `<li class="none">과제명 미검출 — 평가표에서 확인</li>`;
+  const st = (r.st || []);
+  return `<div class="rrow">
+    <div>
+      <div class="meta1"><span class="sub">${esc(r.sub)}</span>${r.cur ? esc(r.cur) + ' 개정 · ' : ''}${r.g ? r.g + '학년 ' : ''}${r.se ? r.se + '학기' : ''}</div>
+      <ol>${tasks}</ol>
+      <div class="sch2"><b>${hl(r.s)}</b> · ${esc(r.r)} ${esc(r.d)}</div>
+      ${r._why && r._why.length ? `<div class="why">검색어가 나온 곳: ${r._why.map(w => `<b>${w}</b>`).join(' · ')}</div>` : ''}
+    </div>
+    <dl>
+      <dt>반영</dt><dd>${r.pw != null ? `<b>수행평가 ${r.pw}%</b>` : '<span class="muted">확인 필요</span>'}${r.ew != null ? ` · 지필 ${r.ew}%` : ''}</dd>
+      <dt>방법</dt><dd>${(r.m || []).map(esc).join(' · ') || '<span class="muted">—</span>'}${(r.tg || []).length ? ' <span class="muted">' + r.tg.map(t => '#' + esc(t)).join(' ') + '</span>' : ''}</dd>
+      <dt>성취기준</dt><dd>${st.length ? hl(st.slice(0, 6).join(', ')) + (st.length > 6 ? ` 외 ${st.length - 6}` : '') : '<span class="muted">—</span>'}</dd>
+      ${r.rk ? `<dt>채점 기준</dt><dd class="ex">${hl(r.rk)}</dd>` : ''}
+    </dl>
+    <div class="ev" title="문서에서 함께 확인된 근거"><div class="lv"><b>${ok}</b><span>/ 5 근거</span></div>${ck.map(([k, v]) => `<i class="${v ? 'y' : ''}">${k}</i>`).join('')}</div>
+    <div class="racts">
+      <button class="btn sm pri" data-detail="${esc(r.id)}">평가표 보기 →</button>
+      <button class="btn sm${inCmp ? ' on' : ''}" data-cmp="${esc(r.id)}">${inCmp ? '비교에 담김' : '비교에 담기'}</button>
+      <button class="btn sm${rv ? ' on' : ''}" data-rev="${esc(r.id)}">${rv ? '검토함에 있음' : '검토함에 넣기'}</button>
+    </div>
+  </div>`;
+}
+function renderInsight() {
+  const n = current.length;
+  if (!n) { $('#insight').innerHTML = ''; return; }
+  const sch = new Set(current.map(r => r.sid)).size;
+  const tb = current.filter(r => r.nt > 0).length;
+  const pws = current.map(r => r.pw).filter(v => v != null).sort((a, b) => a - b);
+  const med = pws.length ? pws[Math.floor(pws.length / 2)] : null;
+  const mc = {}; for (const r of current) for (const m of r.m || []) mc[m] = (mc[m] || 0) + 1;
+  const topM = Object.entries(mc).sort((a, b) => b[1] - a[1])[0];
+  $('#insight').innerHTML = `
+    <div class="k"><small>학교</small><b>${sch.toLocaleString()}</b>곳</div>
+    <div class="k"><small>채점 기준표 있음</small><b>${tb.toLocaleString()}</b>건 <span class="muted small">(${Math.round(tb / n * 100)}%)</span>${S.hasTask !== '2' && tb ? '<a data-only-tb>이것만 보기</a>' : ''}</div>
+    <div class="k"><small>수행평가 비율(가운데값)</small><b>${med != null ? med + '%' : '–'}</b></div>
+    <div class="k"><small>가장 많은 평가 방법</small><b style="font-size:16px">${topM ? esc(topM[0]) : '–'}</b> ${topM ? `<span class="muted small">${Math.round(topM[1] / n * 100)}%</span>` : ''}</div>`;
+}
 function renderResults() {
   $('#resCount').textContent = `${current.length.toLocaleString()}건`;
+  $('#bigCount').textContent = current.length.toLocaleString();
+  document.querySelectorAll('#viewSeg [data-view]').forEach(b => b.classList.toggle('on', b.dataset.view === VIEW));
+  renderInsight();
   $('#resCond').textContent = condText();
   const pages = Math.max(1, Math.ceil(current.length / PAGE));
   if (S.page > pages) S.page = pages;
   const list = current.slice((S.page - 1) * PAGE, S.page * PAGE);
-  $('#results').innerHTML = list.length ? list.map(caseCard).join('') : `<div class="card empty">조건에 맞는 사례가 없습니다. 조건을 넓혀 보세요.</div>`;
+  $('#results').innerHTML = !list.length ? `<div class="card empty">조건에 맞는 사례가 없습니다. 조건을 넓혀 보세요.${S.syn !== '1' && S.q ? ' ‘비슷한 말도 찾기’를 켜 보세요.' : ''}</div>`
+    : VIEW === 'row' ? `<div class="rowlist"><div class="rhead"><div>수행평가 · 학교</div><div>평가 구조</div><div>근거</div><div>사용</div></div>${list.map(caseRow).join('')}</div>`
+    : list.map(caseCard).join('');
   const btn = (p, t, on) => `<button class="btn sm${on ? ' on' : ''}" data-page="${p}">${t}</button>`;
   let h = '';
   if (pages > 1) {
@@ -473,6 +766,8 @@ function renderResults() {
   }
   $('#pager').innerHTML = h;
 }
+$('#viewSeg').onclick = e => { const b = e.target.closest('[data-view]'); if (!b) return; VIEW = b.dataset.view; store.set('suhaeng-view', VIEW); renderResults(); };
+$('#insight').onclick = e => { if (e.target.closest('[data-only-tb]')) { S.hasTask = '2'; $('#fHasTask').value = '2'; apply(); } };
 $('#pager').onclick = e => { const b = e.target.closest('[data-page]'); if (!b) return; S.page = +b.dataset.page; writeHash(curView()); renderResults(); window.scrollTo(0, $('#results').offsetTop - 80); };
 
 function findRow(id) {
@@ -481,7 +776,7 @@ function findRow(id) {
 }
 function slim(r) { const { _txt, ...o } = r; return o; }
 document.addEventListener('click', e => {
-  const d = e.target.closest('[data-detail]'); if (d) return showDetail(d.dataset.detail);
+  const d = e.target.closest('[data-detail]'); if (d) { e.preventDefault(); return showDetail(d.dataset.detail); }
   const c = e.target.closest('[data-cmp]'); if (c) return toggleCmp(c.dataset.cmp, c);
   const v = e.target.closest('[data-rev]'); if (v) return toggleReview(v.dataset.rev, v);
 });
@@ -495,20 +790,45 @@ function fileUrl(r) {
 
 // ---------- 상세 ----------
 const detailCache = new Map();
+const hashSid = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+async function fetchGz(url) {
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const b = new Uint8Array(await res.arrayBuffer());
+  let txt;
+  if (b[0] === 0x1f && b[1] === 0x8b) txt = await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  else txt = new TextDecoder().decode(b);
+  return JSON.parse(txt);
+}
 async function loadDetail(r) {
   if (!r.dk || !r.sid) return null;
+  const n = META && META.dpack && META.dpack[r.dk];
+  if (n) {
+    const url = `${DATA_URL}dpack/${r.dk}-${hashSid(r.sid) % n}.json.gz?v=${encodeURIComponent(META.built || '')}`;
+    if (!detailCache.has(url)) detailCache.set(url, fetchGz(url).catch(() => null));
+    const p = await detailCache.get(url);
+    const cs = p && p[r.sid];
+    return cs ? cs[r.id] : null;
+  }
   const url = `${DATA_URL}details/${r.dk}/${r.sid}.json.gz`;
-  if (!detailCache.has(url)) detailCache.set(url, (async () => {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const b = new Uint8Array(await res.arrayBuffer());
-    let txt;
-    if (b[0] === 0x1f && b[1] === 0x8b) txt = await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
-    else txt = new TextDecoder().decode(b);
-    return JSON.parse(txt);
-  })().catch(() => null));
+  if (!detailCache.has(url)) detailCache.set(url, fetchGz(url).catch(() => null));
   const d = await detailCache.get(url);
   return d && d.cases ? d.cases[r.id] : null;
+}
+// 같은 과목에서 과제 낱말·성취기준이 겹치는 다른 학교 사례
+function wordsOf(r) { return new Set((r.t || []).join(' ').replace(/[()\[\]·,:/]/g, ' ').split(/\s+/).map(w => w.replace(/(하기|을|를|의|에|와|과|으로|로)$/, '')).filter(w => w.length >= 2 && !SUG_STOP.has(w))); }
+function similarHtml(r) {
+  const pool = [];
+  for (const rows of cache.values()) for (const x of rows) if (x.sub === r.sub && x.id !== r.id && x.sid !== r.sid) pool.push(x);
+  if (!pool.length) return '';
+  const W = wordsOf(r), ST = new Set(r.st || []);
+  const scored = pool.map(x => {
+    const w2 = wordsOf(x); let a = 0; for (const w of W) if (w2.has(w)) a++;
+    let b = 0; for (const s of (x.st || [])) if (ST.has(s)) b++;
+    return [x, a * 3 + Math.min(b, 4) + (x.nt > 0 ? 1 : 0)];
+  }).filter(([, v]) => v >= 3).sort((p, q) => q[1] - p[1]).slice(0, 6);
+  if (!scored.length) return '';
+  return `<div class="secttl"><b>비슷한 수행평가 (다른 학교)</b></div><div class="sim">${scored.map(([x]) => `<a href="#" data-detail="${esc(x.id)}"><b>${esc(x.s)}</b> <small>${esc(x.r)} ${esc(x.d)}${x.nt ? ' · 표 ' + x.nt + '개' : ''}</small><br>${(x.t || []).slice(0, 3).map(esc).join(' / ') || '<small>과제명 없음</small>'}</a>`).join('')}</div>`;
 }
 const cbox = s => String(s || '').replace(/gfedcb/g, '☑').replace(/gfedc/g, '☐');
 function tableHtml(t, tasks) {
@@ -551,6 +871,7 @@ async function showDetail(id) {
   const box = $('#dTables'); if (!box) return;
   const tbs = d && d.tb ? d.tb : [];
   if (!tbs.length) {
+    box.insertAdjacentHTML('afterend', `<div id="simBox">${similarHtml(r)}</div>`);
     box.innerHTML = !('nt' in r)
       ? `<div class="note small"><b>표 정보가 아직 없는 사례입니다.</b> 표 읽기 기능을 넣기 전에 수집된 자료라, 다음 이어서 수집 때 자동으로 채워집니다. 지금은 아래 ‘원문 내려받기’로 확인해 주세요. 사례 찾기에서 <b>표·과제명 → 채점 기준표가 있는 사례만</b>을 고르면 표가 있는 사례만 볼 수 있습니다.</div>`
       : `<div class="note small">이 문서에서는 평가 기준표를 표로 읽지 못했습니다(스캔본이거나 표 선이 없는 문서). 아래 ‘원문 내려받기’로 확인해 주세요.</div>`;
@@ -565,7 +886,7 @@ async function showDetail(id) {
       h += `<div class="secttl"><b>채점 기준${rub.length > 1 ? ' ' + (i + 1) : ''}</b>${name ? `<span class="pill">${esc(name)}</span>` : ''}</div>${t.ti && t.ti !== name ? `<div class="small muted">${esc(t.ti)}</div>` : ''}${tableHtml(t, r.t)}`;
     });
   } else h += `<div class="note small">채점 기준표는 찾지 못했습니다. 원문에서 확인해 주세요.</div>`;
-  box.innerHTML = h;
+  box.innerHTML = h + similarHtml(r);
 }
 function closeModal() { $('#modal').classList.add('hidden'); }
 $('#modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
@@ -577,7 +898,7 @@ function toggleCmp(id, btn) {
   if (i >= 0) cmp.splice(i, 1);
   else { if (cmp.length >= 4) { alertBar('비교는 4개까지 담을 수 있습니다.'); return; } const r = findRow(id); if (r) cmp.push(slim(r)); }
   store.set('suhaeng-cmp', cmp); counts();
-  if (btn && btn.closest('.case')) renderResults();
+  if (btn && (btn.closest('.case') || btn.closest('.rrow'))) renderResults();
   if (!$('#modal').classList.contains('hidden')) showDetail(id);
   if (curView() === 'compare') renderCompare();
 }
@@ -606,7 +927,7 @@ function toggleReview(id, btn) {
   if (review[id]) delete review[id];
   else { const r = findRow(id); if (!r) return; review[id] = { status: 'hold', memo: '', row: slim(r), at: new Date().toISOString() }; }
   store.set('suhaeng-review', review); counts();
-  if (btn && btn.closest('.case')) renderResults();
+  if (btn && (btn.closest('.case') || btn.closest('.rrow'))) renderResults();
   if (!$('#modal').classList.contains('hidden')) showDetail(id);
   if (curView() === 'review') renderReview();
 }
@@ -687,6 +1008,16 @@ async function exportXlsx(rows, name) {
 function alertBar(msg) { const d = document.createElement('div'); d.className = 'card'; d.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:10px 16px;z-index:60;background:var(--ink);color:#fff;border:0'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 
 // ---------- 시작 ----------
+
+// ---------- 디자인 고르기 ----------
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  store.set('suhaeng-theme-v', t); try { localStorage.setItem('suhaeng-theme', t); } catch (e) {}
+  document.querySelectorAll('#themePick button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+}
+$('#themePick').onclick = e => { const b = e.target.closest('[data-theme]'); if (b) setTheme(b.dataset.theme); };
+setTheme(document.documentElement.dataset.theme || 'base');
+
 (async function start() {
   counts();
   const view = readHash();
@@ -716,6 +1047,27 @@ function alertBar(msg) { const d = document.createElement('div'); d.className = 
   buildFilters(); bindFilters();
   go(view, false);
   if (view === 'cases' || view === 'home') apply(true);
+})();
+</script>
+<div class="modal hidden" id="iosTip"><div class="card pad" style="max-width:380px">
+  <h3 style="margin-top:0">아이폰·아이패드에 설치</h3>
+  <p class="small">사파리 아래쪽 <b>공유 버튼(□↑)</b> → <b>홈 화면에 추가</b>를 누르면 앱처럼 쓸 수 있습니다.</p>
+  <div style="text-align:right"><button class="btn" onclick="this.closest('.modal').classList.add('hidden')">닫기</button></div>
+</div></div>
+<script>
+(() => {
+  const btn = document.getElementById('btnInstall');
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let evt = null;
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); evt = e; if (!standalone) btn.classList.add('show'); });
+  addEventListener('appinstalled', () => { btn.classList.remove('show'); evt = null; });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios && !standalone) btn.classList.add('show');
+  btn.onclick = async () => {
+    if (evt) { evt.prompt(); await evt.userChoice; evt = null; btn.classList.remove('show'); }
+    else document.getElementById('iosTip').classList.remove('hidden');
+  };
 })();
 </script>
 </body>
