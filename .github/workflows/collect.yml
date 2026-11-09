@@ -14,6 +14,10 @@ on:
         description: '04 = 고등학교, 03 = 중학교'
         required: false
         default: '04'
+      build_only:
+        description: 'yes = 수집 없이 색인·평가표 묶음만 다시 만들기'
+        required: false
+        default: 'no'
       chain:
         description: '이어서 수집 횟수(자동으로 채워짐, 손대지 마세요)'
         required: false
@@ -52,7 +56,7 @@ jobs:
 
   collect:
     needs: plan
-    if: needs.plan.outputs.run == 'true'
+    if: needs.plan.outputs.run == 'true' && github.event.inputs.build_only != 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 350
     strategy:
@@ -94,6 +98,7 @@ jobs:
           cache: npm
       - run: npm ci
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           pattern: raw-*
           path: docs/data
