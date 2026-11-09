@@ -104,6 +104,8 @@ jobs:
           path: docs/data
           merge-multiple: true
       - name: 색인 만들기
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
         run: node collector/build.js
       - name: 이어서 할 시·도 확인
         id: pend
