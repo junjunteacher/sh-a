@@ -6,6 +6,8 @@
 <title>수행평가 아이디어 아카이브 · 학교알리미 자동 수집</title>
 <meta name="description" content="학교알리미에 공시된 교과별 교수·학습 및 평가계획에서 수행평가를 자동으로 찾아 학교·과목·방식별로 검색하고 비교합니다.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("suhaeng-theme")||"base"}catch(e){}</script>
 <style>
 :root{
   --paper:#f6f4ee; --card:#fffdf8; --ink:#1f2a2e; --ink2:#55626a; --line:#e2ddd0; --soft:#efeadf;
@@ -127,6 +129,79 @@ footer{border-top:1px solid var(--line);padding:22px 0;color:var(--ink2);font-si
 ol.flow{counter-reset:f;list-style:none;padding:0;margin:0;display:grid;gap:10px}
 ol.flow li{counter-increment:f;padding:12px 14px 12px 48px;position:relative;background:var(--soft);border-radius:10px}
 ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
+
+/* ================= 테마 ================= */
+.themepick{display:flex;gap:4px;margin-left:8px}
+.themepick button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.themepick button.on{box-shadow:0 0 0 2px var(--teal)}
+.themepick [data-theme="base"]{background:linear-gradient(135deg,#f6f4ee 50%,#1d5c63 50%)}
+.themepick [data-theme="pin"]{background:radial-gradient(circle at 50% 35%,#d64541 0 28%,transparent 30%),#c9a26b}
+.themepick [data-theme="blue"]{background:linear-gradient(135deg,#dbeafe 50%,#1e4a8c 50%)}
+
+/* --- 핀앤페이퍼: 코르크 게시판 + 압정으로 꽂은 종이 --- */
+html[data-theme="pin"]{
+  --paper:#c9a26b; --card:#fffdf6; --ink:#2b2622; --ink2:#6b5d50; --line:#e6dccb; --soft:#f4ecdc;
+  --teal:#8a3b2e; --teal2:#b5523f; --tealbg:#f7e3da; --amber:#9a6a12; --amberbg:#fdf1d4;
+  --shadow:0 2px 3px rgba(60,35,10,.18),0 10px 22px rgba(60,35,10,.16);
+}
+html[data-theme="pin"] body{
+  background-color:#c9a26b;
+  background-image:radial-gradient(rgba(90,55,20,.22) 1px,transparent 1.6px),radial-gradient(rgba(255,240,210,.25) 1px,transparent 1.8px),radial-gradient(rgba(120,75,30,.18) 1.4px,transparent 2px);
+  background-size:7px 7px,11px 11px,17px 17px;background-position:0 0,3px 5px,8px 2px;
+}
+html[data-theme="pin"] header.top{background:#5b3a21;border-bottom:0;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+html[data-theme="pin"] header.top .logo,html[data-theme="pin"] nav.tabs button{color:#f6e7cf}
+html[data-theme="pin"] nav.tabs button.on{background:#f6e7cf;color:#5b3a21}
+html[data-theme="pin"] .logo .mk{background:#d64541}
+html[data-theme="pin"] .seal{background:#fff8ec}
+html[data-theme="pin"] h1,html[data-theme="pin"] h2,html[data-theme="pin"] .case .sch,html[data-theme="pin"] .secttl b{font-family:"Gaegu","Nanum Pen Script",Pretendard,sans-serif;letter-spacing:0}
+html[data-theme="pin"] h1{font-size:34px} html[data-theme="pin"] h2{font-size:26px;color:#fff8ec;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+html[data-theme="pin"] .modal h2{color:var(--ink);text-shadow:none}
+html[data-theme="pin"] .case .sch{font-size:21px}
+html[data-theme="pin"] .card{border:0;border-radius:3px;position:relative}
+html[data-theme="pin"] .card:not(.box):not(.filters)::before{content:"";position:absolute;top:-7px;left:50%;width:16px;height:16px;margin-left:-8px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ff9b8f,#d64541 45%,#8e211c);box-shadow:1px 3px 3px rgba(0,0,0,.35);z-index:2}
+html[data-theme="pin"] .case:nth-child(4n+1){transform:rotate(-.35deg)} html[data-theme="pin"] .case:nth-child(4n+2){transform:rotate(.3deg)}
+html[data-theme="pin"] .case:nth-child(4n+3){transform:rotate(-.15deg);background:#fff9e3} html[data-theme="pin"] .case:nth-child(4n){transform:rotate(.4deg);background:#f3f8ff}
+html[data-theme="pin"] .filters{background:#fffdf6;background-image:repeating-linear-gradient(transparent 0 27px,#e9dfcc 27px 28px)}
+html[data-theme="pin"] .filters::after{content:"";position:absolute;top:-10px;right:28px;width:90px;height:22px;background:rgba(255,236,170,.75);transform:rotate(-4deg);box-shadow:0 1px 2px rgba(0,0,0,.1)}
+html[data-theme="pin"] .stat{background:#fff4dc;border:1px dashed #d9c39b}
+html[data-theme="pin"] .resbar b,html[data-theme="pin"] .resbar .muted{color:#fff8ec;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+html[data-theme="pin"] footer{color:#fff3df;border-top-color:rgba(0,0,0,.15)}
+html[data-theme="pin"] .modal .box{background:#fffdf6;background-image:repeating-linear-gradient(transparent 0 29px,#efe6d4 29px 30px)}
+html[data-theme="pin"] .taskchips span{background:#ffe9a8;color:#5b3a21;border-radius:2px;box-shadow:0 1px 2px rgba(0,0,0,.15);transform:rotate(-1deg)}
+html[data-theme="pin"] table.doc tr:first-child td{background:#f6e7cf}
+
+/* --- 블루 메모: 모눈 공책 + 파란 메모지 --- */
+html[data-theme="blue"]{
+  --paper:#eef4fb; --card:#ffffff; --ink:#14284b; --ink2:#4a5f82; --line:#cfdcef; --soft:#e7effa;
+  --teal:#1e4a8c; --teal2:#3a6fc4; --tealbg:#dde9fb; --amber:#8a5a00; --amberbg:#fff3d6;
+  --shadow:0 1px 2px rgba(20,40,75,.08),0 8px 20px rgba(20,40,75,.08);
+}
+html[data-theme="blue"] body{
+  background-color:#eef4fb;
+  background-image:linear-gradient(rgba(58,111,196,.10) 1px,transparent 1px),linear-gradient(90deg,rgba(58,111,196,.10) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+html[data-theme="blue"] header.top{background:#1e4a8c;border-bottom:0}
+html[data-theme="blue"] header.top .logo,html[data-theme="blue"] nav.tabs button{color:#e3eeff}
+html[data-theme="blue"] nav.tabs button.on{background:#fff;color:#1e4a8c}
+html[data-theme="blue"] .logo .mk{background:#7fb2ff;color:#0f2a55}
+html[data-theme="blue"] .seal{background:#fff}
+html[data-theme="blue"] h1,html[data-theme="blue"] h2,html[data-theme="blue"] .secttl b{font-family:"Gowun Dodum",Pretendard,sans-serif}
+html[data-theme="blue"] .card{border:1px solid #c4d6f2;border-radius:6px;position:relative}
+html[data-theme="blue"] .case{background:#f4f8ff;border-left:6px solid #3a6fc4}
+html[data-theme="blue"] .case:nth-child(3n+2){background:#eef6ff;border-left-color:#5d8fe0}
+html[data-theme="blue"] .case:nth-child(3n){background:#f6fbff;border-left-color:#2a5aa8}
+html[data-theme="blue"] .case::after,html[data-theme="blue"] .hero::after{content:"";position:absolute;top:-9px;left:34px;width:70px;height:20px;background:rgba(127,178,255,.55);transform:rotate(3deg);border-radius:2px}
+html[data-theme="blue"] .filters{background:#fff;background-image:repeating-linear-gradient(transparent 0 27px,#e3ecf9 27px 28px);border-top:4px solid #3a6fc4}
+html[data-theme="blue"] .stat{background:#dde9fb}
+html[data-theme="blue"] .stat b{color:#1e4a8c}
+html[data-theme="blue"] .modal .box{background:#fbfdff;border-top:6px solid #3a6fc4}
+html[data-theme="blue"] .taskchips span{background:#3a6fc4;color:#fff}
+html[data-theme="blue"] table.doc tr:first-child td{background:#dde9fb;color:#14284b}
+html[data-theme="blue"] table.doc td{border-color:#c4d6f2}
+html[data-theme="blue"] table.doc td.lab{background:#eef4fb}
 </style>
 </head>
 <body>
@@ -141,6 +216,11 @@ ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:
     <button data-go="review">검토함 <span class="n" id="nRev">0</span></button>
     <button data-go="about">자료 안내</button>
   </nav>
+  <div class="themepick" id="themePick" title="디자인 고르기">
+    <button data-theme="base" title="기본"></button>
+    <button data-theme="pin" title="핀앤페이퍼"></button>
+    <button data-theme="blue" title="블루 메모"></button>
+  </div>
 </div></header>
 
 <main class="wrap">
@@ -687,6 +767,16 @@ async function exportXlsx(rows, name) {
 function alertBar(msg) { const d = document.createElement('div'); d.className = 'card'; d.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);padding:10px 16px;z-index:60;background:var(--ink);color:#fff;border:0'; d.textContent = msg; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 
 // ---------- 시작 ----------
+
+// ---------- 디자인 고르기 ----------
+function setTheme(t) {
+  document.documentElement.dataset.theme = t;
+  store.set('suhaeng-theme-v', t); try { localStorage.setItem('suhaeng-theme', t); } catch (e) {}
+  document.querySelectorAll('#themePick button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
+}
+$('#themePick').onclick = e => { const b = e.target.closest('[data-theme]'); if (b) setTheme(b.dataset.theme); };
+setTheme(document.documentElement.dataset.theme || 'base');
+
 (async function start() {
   counts();
   const view = readHash();
