@@ -1,5 +1,5 @@
 // 수행평가 아이디어 아카이브 — 오프라인·빠른 열기용 서비스 워커
-const VER = 'v5';
+const VER = 'v6';
 const SHELL = 'shell-' + VER, DATA = 'data-' + VER;
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 

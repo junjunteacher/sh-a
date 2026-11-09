@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:type" content="website">
+<meta property="og:title" content="수행평가 아이디어 아카이브">
+<meta property="og:description" content="전국 고등학교 전 과목 수행평가와 채점 기준표를 표 그대로 찾아보세요 · made by junjunT">
+<meta property="og:image" content="https://junjunteacher.github.io/sh-a/og-image.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1d5c63">
 <link rel="icon" href="icons/icon-192.png">
@@ -13,7 +19,7 @@
 <title>수행평가 아이디어 아카이브 · 학교알리미 자동 수집</title>
 <meta name="description" content="학교알리미에 공시된 교과별 교수·학습 및 평가계획에서 수행평가를 자동으로 찾아 학교·과목·방식별로 검색하고 비교합니다.">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@700;800&family=Jua&family=Do+Hyeon&family=Nanum+Pen+Script&display=swap">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("suhaeng-theme")||"base"}catch(e){}</script>
 <style>
 :root{
@@ -203,12 +209,24 @@ ol.flow li{counter-increment:f;padding:12px 14px 12px 48px;position:relative;bac
 ol.flow li:before{content:counter(f);position:absolute;left:14px;top:12px;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px}
 
 /* ================= 테마 ================= */
-.themepick{display:flex;gap:4px;margin-left:8px}
-.themepick button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
-.themepick button.on{box-shadow:0 0 0 2px var(--teal)}
-.themepick [data-theme="base"]{background:linear-gradient(135deg,#f6f4ee 50%,#1d5c63 50%)}
-.themepick [data-theme="pin"]{background:radial-gradient(circle at 50% 35%,#d64541 0 28%,transparent 30%),#c9a26b}
-.themepick [data-theme="blue"]{background:linear-gradient(135deg,#dbeafe 50%,#1e4a8c 50%)}
+.themewrap{position:relative;margin-left:8px}
+.themepick{display:none;position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:250px;padding:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);color:var(--ink)}
+.themepick.open{display:grid;gap:2px}
+.tp-h{font-size:12px;font-weight:800;color:var(--ink2);padding:4px 8px 6px}
+.themepick button{display:grid;grid-template-columns:30px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;border:0;background:none;padding:7px 8px;border-radius:8px;cursor:pointer;color:var(--ink)}
+.themepick button:hover{background:var(--soft)}
+.themepick button.on{background:var(--tealbg);outline:2px solid var(--teal2)}
+.themepick button i{grid-row:1/3;width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.themepick button b{font-size:14px;font-family:Pretendard,sans-serif}
+.themepick button small{font-size:11.5px;color:var(--ink2)}
+.themepick [data-theme="base"] i{background:linear-gradient(135deg,#f6f4ee 50%,#1d5c63 50%)}
+.themepick [data-theme="pin"] i{background:radial-gradient(circle at 50% 35%,#d64541 0 28%,transparent 30%),#c9a26b}
+.themepick [data-theme="blue"] i{background:linear-gradient(135deg,#dbeafe 50%,#1e4a8c 50%)}
+.themepick [data-theme="chalk"] i{background:linear-gradient(135deg,#2f4a3a 55%,#c9a66b 55%)}
+.themepick [data-theme="press"] i{background:linear-gradient(135deg,#f3efe4 50%,#111 50% 78%,#c0262d 78%)}
+.themepick [data-theme="night"] i{background:linear-gradient(135deg,#0f172a 55%,#38bdf8 55%)}
+.themepick [data-theme="spring"] i{background:linear-gradient(135deg,#ffe4ec 50%,#b8e0c8 50%)}
+.themepick [data-theme="pop"] i{background:linear-gradient(135deg,#ffd43b 55%,#111 55% 70%,#ff5c8a 70%)}
 
 /* --- 핀앤페이퍼: 코르크 게시판 + 압정으로 꽂은 종이 --- */
 html[data-theme="pin"]{
@@ -274,6 +292,140 @@ html[data-theme="blue"] .taskchips span{background:#3a6fc4;color:#fff}
 html[data-theme="blue"] table.doc tr:first-child td{background:#dde9fb;color:#14284b}
 html[data-theme="blue"] table.doc td{border-color:#c4d6f2}
 html[data-theme="blue"] table.doc td.lab{background:#eef4fb}
+
+/* --- 칠판: 진초록 칠판 + 분필 글씨 + 나무 틀 --- */
+html[data-theme="chalk"]{
+  --paper:#2f4a3a; --card:#3a5747; --ink:#f3f1e6; --ink2:#c9d3c4; --line:#56735f; --soft:#46634f;
+  --teal:#f7e08a; --teal2:#ffd166; --tealbg:#55705a; --amber:#ffd166; --amberbg:#4d5f45;
+  --green:#b9f0a8; --greenbg:#41604b; --red:#ff8f80; --shadow:none;
+}
+html[data-theme="chalk"] body{background-color:#2f4a3a;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1.5px),linear-gradient(170deg,rgba(255,255,255,.04),transparent 40%);background-size:5px 5px,100% 100%}
+html[data-theme="chalk"] header.top{background:#7a5233;border-bottom:6px solid #5e3d24;box-shadow:inset 0 -2px 0 rgba(255,255,255,.12)}
+html[data-theme="chalk"] header.top .logo,html[data-theme="chalk"] nav.tabs button{color:#fbecd2}
+html[data-theme="chalk"] nav.tabs button.on{background:#f3f1e6;color:#5e3d24}
+html[data-theme="chalk"] .logo .mk{background:#f3f1e6;color:#2f4a3a}
+html[data-theme="chalk"] .seal{background:#fbecd2}
+html[data-theme="chalk"] h1,html[data-theme="chalk"] h2,html[data-theme="chalk"] .case .sch,html[data-theme="chalk"] .secttl b,html[data-theme="chalk"] .rrow ol,html[data-theme="chalk"] .bignum b{font-family:"Nanum Pen Script","Gaegu",sans-serif;letter-spacing:0}
+html[data-theme="chalk"] h1{font-size:44px} html[data-theme="chalk"] h2{font-size:34px} html[data-theme="chalk"] .phead h2{font-size:42px} html[data-theme="chalk"] .rrow ol{font-size:20px;font-weight:400} html[data-theme="chalk"] .bignum b{font-size:48px;font-weight:400}
+html[data-theme="chalk"] .card{border:2px dashed rgba(243,241,230,.35);border-radius:6px}
+html[data-theme="chalk"] .phead{border-bottom:3px solid rgba(243,241,230,.6)}
+html[data-theme="chalk"] select,html[data-theme="chalk"] input,html[data-theme="chalk"] textarea,html[data-theme="chalk"] .chip,html[data-theme="chalk"] .seg{background:#2b4335;color:var(--ink);border-color:#5d7a66}
+html[data-theme="chalk"] .chip.on,html[data-theme="chalk"] .seg button.on{background:#f3f1e6;color:#2f4a3a}
+html[data-theme="chalk"] .btn{background:transparent;color:var(--ink);border-color:#8aa592}
+html[data-theme="chalk"] .btn.pri{background:#f7e08a;border-color:#f7e08a;color:#2f4a3a}
+html[data-theme="chalk"] .rhead{background:#2b4335}
+html[data-theme="chalk"] .rrow .sub{background:#ffd166;color:#2f4a3a}
+html[data-theme="chalk"] mark{background:#ffd166;color:#2f4a3a}
+html[data-theme="chalk"] .modal .box{background:#33503f}
+html[data-theme="chalk"] table.doc td{border-color:#6b8a74}
+html[data-theme="chalk"] table.doc tr:first-child td,html[data-theme="chalk"] table.doc td.lab{background:#46634f}
+html[data-theme="chalk"] table.doc td.hit{background:#6b6a3a}
+html[data-theme="chalk"] .tag{background:#46634f;color:var(--ink)}
+html[data-theme="chalk"] .note{color:var(--ink)}
+
+/* --- 교육 신문: 명조 제목 + 굵은 괘선 + 붉은 포인트 --- */
+html[data-theme="press"]{
+  --paper:#f3efe4; --card:#fbf9f3; --ink:#141414; --ink2:#55524a; --line:#cfc8b6; --soft:#ece6d6;
+  --teal:#141414; --teal2:#c0262d; --tealbg:#efe7d4; --amber:#c0262d; --amberbg:#f7e9e2; --shadow:none;
+}
+html[data-theme="press"] header.top{background:#f3efe4;border-bottom:4px double #141414}
+html[data-theme="press"] .logo span:nth-child(2){font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:20px}
+html[data-theme="press"] .logo .mk{background:#c0262d;border-radius:0}
+html[data-theme="press"] nav.tabs button{color:#141414;border-radius:0}
+html[data-theme="press"] nav.tabs button.on{background:#141414;color:#f3efe4}
+html[data-theme="press"] h1,html[data-theme="press"] h2,html[data-theme="press"] .case .sch,html[data-theme="press"] .secttl b,html[data-theme="press"] .bignum b,html[data-theme="press"] .rrow ol{font-family:"Nanum Myeongjo",serif;font-weight:800}
+html[data-theme="press"] .card{border:0;border-top:3px solid #141414;border-bottom:1px solid #141414;border-radius:0}
+html[data-theme="press"] .phead{border-bottom:5px double #141414}
+html[data-theme="press"] .phead h2{font-size:38px}
+html[data-theme="press"] .eyebrow{color:#c0262d;text-transform:uppercase}
+html[data-theme="press"] .btn,html[data-theme="press"] select,html[data-theme="press"] input,html[data-theme="press"] .chip,html[data-theme="press"] .seg,html[data-theme="press"] .stat,html[data-theme="press"] .insight,html[data-theme="press"] .rowlist{border-radius:0}
+html[data-theme="press"] .btn.pri{background:#141414;border-color:#141414}
+html[data-theme="press"] .chip.on,html[data-theme="press"] .seg button.on{background:#c0262d;border-color:#c0262d}
+html[data-theme="press"] .rrow .sub{background:#c0262d;border-radius:0}
+html[data-theme="press"] .rhead{background:#141414;color:#f3efe4}
+html[data-theme="press"] .rowlist{border:0;border-top:3px solid #141414;background:transparent}
+html[data-theme="press"] .rrow{border-top:1px solid #141414}
+html[data-theme="press"] .insight{border:0;border-top:1px solid #141414;border-bottom:1px solid #141414;background:transparent}
+html[data-theme="press"] .insight .k{border-right:1px solid #141414}
+html[data-theme="press"] .stat{background:transparent;border-left:3px solid #c0262d}
+html[data-theme="press"] .taskchips span{background:transparent;border:1px solid #141414;color:#141414;border-radius:0}
+html[data-theme="press"] table.doc td{border-color:#141414}
+html[data-theme="press"] table.doc tr:first-child td{background:#141414;color:#f3efe4}
+
+/* --- 야간 모드: 어두운 남색 + 하늘색 강조 --- */
+html[data-theme="night"]{
+  --paper:#0f172a; --card:#162033; --ink:#e5edf7; --ink2:#94a3b8; --line:#2a3850; --soft:#1e2b42;
+  --teal:#38bdf8; --teal2:#38bdf8; --tealbg:#12324a; --amber:#fbbf24; --amberbg:#2b2716;
+  --green:#4ade80; --greenbg:#123222; --red:#f87171; --shadow:0 1px 0 rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+html[data-theme="night"] header.top{background:rgba(15,23,42,.92);backdrop-filter:blur(8px);border-bottom:1px solid #2a3850}
+html[data-theme="night"] select,html[data-theme="night"] input,html[data-theme="night"] textarea,html[data-theme="night"] .chip,html[data-theme="night"] .seg{background:#0f172a;color:var(--ink);border-color:#334155}
+html[data-theme="night"] .btn.pri,html[data-theme="night"] .chip.on,html[data-theme="night"] .seg button.on{background:#38bdf8;border-color:#38bdf8;color:#0f172a}
+html[data-theme="night"] .rrow .sub{background:#0ea5e9;color:#0f172a}
+html[data-theme="night"] mark{background:#facc15;color:#0f172a}
+html[data-theme="night"] .seal{background:#fff}
+html[data-theme="night"] .tag{background:#1e2b42;color:#cbd5e1}
+html[data-theme="night"] .tag.cur{background:#2e2350;color:#c4b5fd}
+html[data-theme="night"] .tag.w{background:#3a2e10;color:#fcd34d}
+html[data-theme="night"] .tag.m{background:#12324a;color:#7dd3fc}
+html[data-theme="night"] table.doc td{border-color:#334155}
+html[data-theme="night"] table.doc tr:first-child td,html[data-theme="night"] table.doc td.lab{background:#1e2b42}
+html[data-theme="night"] table.doc td.hit{background:#3b3413}
+html[data-theme="night"] .modal{background:rgba(0,0,0,.6)}
+html[data-theme="night"] .phead{border-bottom-color:#38bdf8}
+
+/* --- 봄 파스텔: 연분홍·연두, 둥근 카드 --- */
+html[data-theme="spring"]{
+  --paper:#fff7f4; --card:#ffffff; --ink:#3b3340; --ink2:#7d7285; --line:#f3dfe4; --soft:#fdeef2;
+  --teal:#d6527a; --teal2:#e87d9c; --tealbg:#ffe4ec; --amber:#c9822b; --amberbg:#fff3df;
+  --green:#3f9466; --greenbg:#e1f4e8; --shadow:0 6px 18px rgba(214,82,122,.08);
+}
+html[data-theme="spring"] body{background:radial-gradient(circle at 10% 0,#ffe4ec 0,transparent 35%),radial-gradient(circle at 90% 20%,#e1f4e8 0,transparent 35%),#fff7f4;background-attachment:fixed}
+html[data-theme="spring"] header.top{background:rgba(255,255,255,.85);backdrop-filter:blur(6px);border-bottom:1px solid #f3dfe4}
+html[data-theme="spring"] h1,html[data-theme="spring"] h2,html[data-theme="spring"] .secttl b,html[data-theme="spring"] .bignum b,html[data-theme="spring"] .logo span:nth-child(2){font-family:"Jua",Pretendard,sans-serif;font-weight:400}
+html[data-theme="spring"] .card,html[data-theme="spring"] .rowlist,html[data-theme="spring"] .insight{border-radius:22px;border-color:#f6e1e7}
+html[data-theme="spring"] .btn,html[data-theme="spring"] select,html[data-theme="spring"] input,html[data-theme="spring"] .seg{border-radius:999px}
+html[data-theme="spring"] .btn.pri{background:linear-gradient(135deg,#e87d9c,#d6527a);border:0}
+html[data-theme="spring"] .logo .mk{background:linear-gradient(135deg,#e87d9c,#8fd1a8);border-radius:50%}
+html[data-theme="spring"] .rrow .sub{background:#8fd1a8;color:#1f4d33;border-radius:999px}
+html[data-theme="spring"] .rhead{background:#fdeef2}
+html[data-theme="spring"] .stat{background:#fdeef2;border-radius:18px}
+html[data-theme="spring"] .stat:nth-child(2n){background:#e9f6ee}
+html[data-theme="spring"] .phead{border-bottom:3px dotted #e87d9c}
+html[data-theme="spring"] .taskchips span{border-radius:999px}
+html[data-theme="spring"] .ev i.y:before{background:#8fd1a8}
+html[data-theme="spring"] table.doc tr:first-child td{background:#ffe4ec}
+html[data-theme="spring"] table.doc td{border-color:#f0d6dd}
+
+/* --- 팝 포스터: 노랑 바탕 + 굵은 검정 테두리 + 딱딱한 그림자 --- */
+html[data-theme="pop"]{
+  --paper:#ffd43b; --card:#ffffff; --ink:#111; --ink2:#3d3d3d; --line:#111; --soft:#fff3bf;
+  --teal:#111; --teal2:#ff5c8a; --tealbg:#ffe0ea; --amber:#111; --amberbg:#fff3bf; --shadow:5px 5px 0 #111;
+}
+html[data-theme="pop"] header.top{background:#111;border-bottom:0}
+html[data-theme="pop"] header.top .logo,html[data-theme="pop"] nav.tabs button{color:#ffd43b}
+html[data-theme="pop"] nav.tabs button.on{background:#ffd43b;color:#111}
+html[data-theme="pop"] .logo .mk{background:#ff5c8a;color:#111;border:2px solid #ffd43b}
+html[data-theme="pop"] .seal{background:#fff}
+html[data-theme="pop"] h1,html[data-theme="pop"] h2,html[data-theme="pop"] .secttl b,html[data-theme="pop"] .bignum b,html[data-theme="pop"] .case .sch{font-family:"Do Hyeon",Pretendard,sans-serif;font-weight:400;letter-spacing:0}
+html[data-theme="pop"] .phead h2{font-size:44px} html[data-theme="pop"] .bignum b{font-size:52px;color:#111}
+html[data-theme="pop"] .phead{border-bottom:5px solid #111}
+html[data-theme="pop"] .card,html[data-theme="pop"] .rowlist,html[data-theme="pop"] .insight{border:3px solid #111;border-radius:10px;box-shadow:5px 5px 0 #111}
+html[data-theme="pop"] .rrow{border-top:3px solid #111}
+html[data-theme="pop"] .rhead{background:#ff5c8a;color:#111}
+html[data-theme="pop"] .insight .k{border-right:3px solid #111}
+html[data-theme="pop"] .btn,html[data-theme="pop"] select,html[data-theme="pop"] input,html[data-theme="pop"] .chip,html[data-theme="pop"] .seg{border:2px solid #111;box-shadow:2px 2px 0 #111}
+html[data-theme="pop"] .btn:active{transform:translate(2px,2px);box-shadow:none}
+html[data-theme="pop"] .btn.pri{background:#ff5c8a;color:#111;border-color:#111}
+html[data-theme="pop"] .chip.on,html[data-theme="pop"] .seg button.on{background:#111;color:#ffd43b}
+html[data-theme="pop"] .rrow .sub{background:#111;color:#ffd43b}
+html[data-theme="pop"] .stat{background:#fff3bf;border:2px solid #111}
+html[data-theme="pop"] .taskchips span{background:#ffd43b;color:#111;border:2px solid #111}
+html[data-theme="pop"] .ev i.y:before{background:#ff5c8a;border:1px solid #111}
+html[data-theme="pop"] table.doc td{border:2px solid #111}
+html[data-theme="pop"] table.doc tr:first-child td{background:#ffd43b}
+html[data-theme="pop"] .modal .box{border:3px solid #111}
 </style>
 </head>
 <body>
@@ -289,10 +441,19 @@ html[data-theme="blue"] table.doc td.lab{background:#eef4fb}
     <button data-go="about">자료 안내</button>
   </nav>
   <button class="btn sm pri" id="btnInstall" title="이 컴퓨터·휴대폰에 앱으로 설치">⤓ 앱 설치</button>
-  <div class="themepick" id="themePick" title="디자인 고르기">
-    <button data-theme="base" title="기본"></button>
-    <button data-theme="pin" title="핀앤페이퍼"></button>
-    <button data-theme="blue" title="블루 메모"></button>
+  <div class="themewrap">
+    <button class="btn sm" id="themeBtn" title="디자인 고르기">🎨 디자인</button>
+    <div class="themepick" id="themePick">
+      <div class="tp-h">디자인 고르기</div>
+      <button data-theme="base"><i></i><b>기본</b><small>청록 잉크</small></button>
+      <button data-theme="pin"><i></i><b>핀앤페이퍼</b><small>코르크 게시판</small></button>
+      <button data-theme="blue"><i></i><b>블루 메모</b><small>모눈 메모지</small></button>
+      <button data-theme="chalk"><i></i><b>칠판</b><small>분필 손글씨</small></button>
+      <button data-theme="press"><i></i><b>교육 신문</b><small>명조 1면 편집</small></button>
+      <button data-theme="night"><i></i><b>야간 모드</b><small>눈이 편한 어두운 화면</small></button>
+      <button data-theme="spring"><i></i><b>봄 파스텔</b><small>부드러운 둥근 카드</small></button>
+      <button data-theme="pop"><i></i><b>팝 포스터</b><small>굵은 테두리·노랑</small></button>
+    </div>
   </div>
 </div></header>
 
@@ -1018,7 +1179,9 @@ function setTheme(t) {
   store.set('suhaeng-theme-v', t); try { localStorage.setItem('suhaeng-theme', t); } catch (e) {}
   document.querySelectorAll('#themePick button').forEach(b => b.classList.toggle('on', b.dataset.theme === t));
 }
-$('#themePick').onclick = e => { const b = e.target.closest('[data-theme]'); if (b) setTheme(b.dataset.theme); };
+$('#themePick').onclick = e => { const b = e.target.closest('[data-theme]'); if (b) { setTheme(b.dataset.theme); $('#themePick').classList.remove('open'); } };
+$('#themeBtn').onclick = e => { e.stopPropagation(); $('#themePick').classList.toggle('open'); };
+document.addEventListener('click', e => { if (!e.target.closest('.themewrap')) $('#themePick').classList.remove('open'); });
 setTheme(document.documentElement.dataset.theme || 'base');
 
 (async function start() {
