@@ -14,7 +14,8 @@ const DET = path.join(DATA, 'details');
 const PACK = path.join(DATA, 'dpack');
 const PER_PACK = 30; // 묶음 하나에 담을 학교 수(파일 수를 줄여 Pages 배포를 빠르게)
 const hashSid = s => { let h = 0; for (const ch of String(s)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
-function readDetail(dk, sid) { try { return JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(DET, dk, sid + '.json.gz'))).toString('utf8')); } catch (e) { return null; } }
+// 상세는 글자 그대로 읽어 묶음에 이어 붙이고(메모리 절약), 채점 기준 낱말을 뽑을 때만 잠깐 해석한다
+function readDetailText(dk, sid) { try { return zlib.gunzipSync(fs.readFileSync(path.join(DET, dk, sid + '.json.gz'))).toString('utf8'); } catch (e) { return null; } }
 // 채점 기준표의 기준(앞쪽 열) 낱말을 짧게 모아 검색에 쓴다
 function rubricWords(dc) {
   const seen = new Set(); const out = [];
@@ -29,7 +30,10 @@ function rubricWords(dc) {
   }
   return out.join(' ').slice(0, 200);
 }
-const packs = {}; // dk → { n, buckets: [{sid: detail}] }
+fs.rmSync(PACK, { recursive: true, force: true });
+fs.mkdirSync(PACK, { recursive: true });
+const dpack = {};
+let nPack = 0;
 
 const raws = fs.existsSync(RAW) ? fs.readdirSync(RAW).filter(f => f.endsWith('.json.gz')) : [];
 const bySubject = new Map();
@@ -47,11 +51,13 @@ for (const f of raws) {
   const dk = `${st.sido}-${st.level}`;
   const sids = Object.keys(st.schools);
   const nb = Math.max(1, Math.ceil(sids.length / PER_PACK));
-  packs[dk] = { n: nb, buckets: Array.from({ length: nb }, () => ({})) };
+  const buckets = Array.from({ length: nb }, () => []);
+  dpack[dk] = nb;
   for (const [sid, s] of Object.entries(st.schools)) {
     nSchools++;
-    const det = readDetail(dk, sid);
-    if (det && det.cases) packs[dk].buckets[hashSid(sid) % nb][sid] = det.cases;
+    const txt = readDetailText(dk, sid);
+    let det = null;
+    if (txt) { buckets[hashSid(sid) % nb].push(JSON.stringify(sid) + ':' + txt); try { det = JSON.parse(txt); } catch (e) {} }
     let has = false;
     regions[r][s.district || ''] = (regions[r][s.district || ''] || 0);
     for (const fr of Object.values(s.files || {})) {
@@ -75,6 +81,7 @@ for (const f of raws) {
     }
     if (has) nSchoolsWith++;
   }
+  buckets.forEach((b, i) => { fs.writeFileSync(path.join(PACK, `${dk}-${i}.json.gz`), zlib.gzipSync(Buffer.from('{' + b.join(',') + '}'), { level: 9 })); nPack++; });
 }
 
 fs.rmSync(OUT, { recursive: true, force: true });
@@ -95,15 +102,6 @@ sorted.forEach(([key, v], i) => {
   nWithTables += v.rows.filter(r => r.nt > 0).length;
   subjects.push({ name, group: v.grp, count: v.rows.length, file, curs, sem });
 });
-
-fs.rmSync(PACK, { recursive: true, force: true });
-fs.mkdirSync(PACK, { recursive: true });
-const dpack = {};
-let nPack = 0;
-for (const [dk, p] of Object.entries(packs)) {
-  dpack[dk] = p.n;
-  p.buckets.forEach((b, i) => { fs.writeFileSync(path.join(PACK, `${dk}-${i}.json.gz`), zlib.gzipSync(Buffer.from(JSON.stringify(b)), { level: 9 })); nPack++; });
-}
 
 const meta = {
   updated: latest || new Date().toISOString(), built: new Date().toISOString(), levels: [...levels],

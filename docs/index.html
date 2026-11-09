@@ -808,7 +808,8 @@ async function loadDetail(r) {
     if (!detailCache.has(url)) detailCache.set(url, fetchGz(url).catch(() => null));
     const p = await detailCache.get(url);
     const cs = p && p[r.sid];
-    return cs ? cs[r.id] : null;
+    const cc = cs && (cs.cases || cs);
+    return cc ? cc[r.id] || null : null;
   }
   const url = `${DATA_URL}details/${r.dk}/${r.sid}.json.gz`;
   if (!detailCache.has(url)) detailCache.set(url, fetchGz(url).catch(() => null));
@@ -872,7 +873,9 @@ async function showDetail(id) {
   const tbs = d && d.tb ? d.tb : [];
   if (!tbs.length) {
     box.insertAdjacentHTML('afterend', `<div id="simBox">${similarHtml(r)}</div>`);
-    box.innerHTML = !('nt' in r)
+    box.innerHTML = (!d && r.nt > 0)
+      ? `<div class="note small"><b>평가표 ${r.nt}개가 있는 사례인데 파일을 불러오지 못했습니다.</b> 사이트 자료를 새로 만드는 중이거나(몇 분 뒤 새로고침) 인터넷 연결 문제일 수 있습니다. 급하면 아래 ‘원문 내려받기’로 확인해 주세요.</div>`
+      : !('nt' in r)
       ? `<div class="note small"><b>표 정보가 아직 없는 사례입니다.</b> 표 읽기 기능을 넣기 전에 수집된 자료라, 다음 이어서 수집 때 자동으로 채워집니다. 지금은 아래 ‘원문 내려받기’로 확인해 주세요. 사례 찾기에서 <b>표·과제명 → 채점 기준표가 있는 사례만</b>을 고르면 표가 있는 사례만 볼 수 있습니다.</div>`
       : `<div class="note small">이 문서에서는 평가 기준표를 표로 읽지 못했습니다(스캔본이거나 표 선이 없는 문서). 아래 ‘원문 내려받기’로 확인해 주세요.</div>`;
     return;
